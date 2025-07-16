@@ -16,8 +16,8 @@ This tool implements several color constancy algorithms:
 ## Installation
 
 ```bash
-git clone https://github.com/MichailSemoglou/color-constancy-enhancement.git
-cd color-constancy-enhancement
+git clone https://github.com/MichailSemoglou/color-constancy-photo-enhancement.git
+cd color-constancy-photo-enhancement
 pip install -r requirements.txt
 ```
 
