@@ -1,0 +1,106 @@
+cff-version: 1.2.0
+title: "Color Constancy Photo Enhancement"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "Semoglou"
+    given-names: "Michail"
+    orcid: "https://orcid.org/0009-0003-3268-5657"
+    email: "m.semoglou@tongji.edu.cn"
+repository-code: "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
+url: "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
+abstract: >-
+  A Python implementation of color constancy algorithms for photo enhancement,
+  based on the comprehensive review by Foster (2011). This package implements
+  several key color constancy techniques including Gray World assumption,
+  White Patch correction, Von Kries adaptation, Retinex enhancement, and
+  spatial color correction methods.
+keywords:
+  - "color constancy"
+  - "image processing"
+  - "computer vision"
+  - "photo enhancement"
+  - "color correction"
+  - "illuminant estimation"
+  - "retinex"
+  - "von kries adaptation"
+license: MIT
+version: "1.0.0"
+date-released: "2024-07-16"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Foster"
+      given-names: "David H."
+      orcid: "https://orcid.org/0000-0003-2428-715X"
+  title: "Color constancy"
+  journal: "Vision Research"
+  volume: 51
+  issue: 7
+  start: 674
+  end: 700
+  year: 2011
+  doi: "10.1016/j.visres.2010.09.006"
+  url: "https://doi.org/10.1016/j.visres.2010.09.006"
+references:
+  - type: article
+    authors:
+      - family-names: "Foster"
+        given-names: "David H."
+    title: "Color constancy"
+    journal: "Vision Research"
+    volume: 51
+    issue: 7
+    start: 674
+    end: 700
+    year: 2011
+    doi: "10.1016/j.visres.2010.09.006"
+  - type: article
+    authors:
+      - family-names: "Land"
+        given-names: "Edwin H."
+      - family-names: "McCann"
+        given-names: "John J."
+    title: "Lightness and retinex theory"
+    journal: "Journal of the Optical Society of America"
+    volume: 61
+    issue: 1
+    start: 1
+    end: 11
+    year: 1971
+    doi: "10.1364/JOSA.61.000001"
+  - type: article
+    authors:
+      - family-names: "von Kries"
+        given-names: "Johannes"
+    title: "Theoretische Studien über die Umstimmung des Sehorgans"
+    journal: "Festschrift der Albrecht-Ludwigs-Universität"
+    start: 143
+    end: 158
+    year: 1902
+  - type: article
+    authors:
+      - family-names: "Buchsbaum"
+        given-names: "Gershon"
+    title: "A spatial processor model for object colour perception"
+    journal: "Journal of the Franklin Institute"
+    volume: 310
+    issue: 1
+    start: 1
+    end: 26
+    year: 1980
+    doi: "10.1016/0016-0032(80)90058-7"
+  - type: article
+    authors:
+      - family-names: "Maloney"
+        given-names: "Laurence T."
+      - family-names: "Wandell"
+        given-names: "Brian A."
+    title: "Color constancy: a method for recovering surface spectral reflectance"
+    journal: "Journal of the Optical Society of America A"
+    volume: 3
+    issue: 1
+    start: 29
+    end: 33
+    year: 1986
+    doi: "10.1364/JOSAA.3.000029"
