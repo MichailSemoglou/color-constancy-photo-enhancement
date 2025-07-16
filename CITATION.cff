@@ -26,7 +26,7 @@ keywords:
   - "von kries adaptation"
 license: MIT
 version: "1.0.0"
-date-released: "2024-07-16"
+date-released: "2025-07-16"
 preferred-citation:
   type: software
   authors:
@@ -37,7 +37,7 @@ preferred-citation:
   title: "Color Constancy Photo Enhancement"
   url: "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
   version: "1.0.0"
-  year: 2024
+  year: 2025
 references:
   - type: article
     authors:
