@@ -15,7 +15,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/MichailSemoglou/color-constancy-photo-enhancement",
-    packages=find_packages(),
+    py_modules=["color_constancy_enhancer"],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
