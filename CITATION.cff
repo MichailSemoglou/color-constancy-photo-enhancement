@@ -28,20 +28,16 @@ license: MIT
 version: "1.0.0"
 date-released: "2024-07-16"
 preferred-citation:
-  type: article
+  type: software
   authors:
-    - family-names: "Foster"
-      given-names: "David H."
-      orcid: "https://orcid.org/0000-0003-2428-715X"
-  title: "Color constancy"
-  journal: "Vision Research"
-  volume: 51
-  issue: 7
-  start: 674
-  end: 700
-  year: 2011
-  doi: "10.1016/j.visres.2010.09.006"
-  url: "https://doi.org/10.1016/j.visres.2010.09.006"
+    - family-names: "Semoglou"
+      given-names: "Michail"
+      orcid: "https://orcid.org/0009-0003-3268-5657"
+      email: "m.semoglou@tongji.edu.cn"
+  title: "Color Constancy Photo Enhancement"
+  url: "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
+  version: "1.0.0"
+  year: 2024
 references:
   - type: article
     authors:
