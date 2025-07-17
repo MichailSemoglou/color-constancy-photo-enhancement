@@ -126,7 +126,7 @@ Sequentially applies Gray World correction, Von Kries adaptation, and Retinex en
 
 This implementation is based on the comprehensive review:
 
-Foster, D. H. (2011). Color constancy. *Vision Research*, 51(7), 674-700.
+Foster, D. H. (2011). Color constancy. *Vision Research*, *51*(7), 674-700.
 
 The algorithms implement key concepts from 25 years of color constancy research, including:
 - Illuminant estimation techniques
