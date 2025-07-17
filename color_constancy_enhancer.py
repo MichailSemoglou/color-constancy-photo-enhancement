@@ -52,49 +52,80 @@ class ColorConstancyEnhancer:
             illuminant_estimate = np.mean(img_float, axis=(0, 1))
         
         target_illuminant = np.array([0.33, 0.33, 0.33])
+        
+        # Prevent division by zero and extreme corrections
+        illuminant_estimate = np.maximum(illuminant_estimate, 0.01)
         adaptation_coefficients = target_illuminant / illuminant_estimate
+        
+        # Limit extreme corrections to prevent artifacts
+        adaptation_coefficients = np.clip(adaptation_coefficients, 0.3, 3.0)
         
         adapted = img_float * adaptation_coefficients
         return (np.clip(adapted, 0, 1) * 255).astype(np.uint8)
     
-    def retinex_enhancement(self, image: np.ndarray, sigma: float = 15) -> np.ndarray:
+    def retinex_enhancement(self, image: np.ndarray, sigma: float = 25) -> np.ndarray:
         img_float = image.astype(np.float32) / 255.0
         enhanced = np.zeros_like(img_float)
         
         for channel in range(3):
-            log_img = np.log(img_float[:, :, channel] + 1e-6)
+            # Use larger epsilon and smaller gain to prevent overexposure
+            log_img = np.log(img_float[:, :, channel] + 0.01)
             surround = ndimage.gaussian_filter(log_img, sigma=sigma)
             enhanced[:, :, channel] = log_img - surround
         
-        enhanced = (enhanced - enhanced.min()) / (enhanced.max() - enhanced.min())
+        # More conservative normalization
+        enhanced_min = np.percentile(enhanced, 1)
+        enhanced_max = np.percentile(enhanced, 99)
+        
+        if enhanced_max > enhanced_min:
+            enhanced = (enhanced - enhanced_min) / (enhanced_max - enhanced_min)
+        
+        # Apply gentle gamma correction
+        enhanced = np.power(enhanced, 0.8)
+        
         return (enhanced * 255).astype(np.uint8)
     
     def spatial_color_correction(self, image: np.ndarray) -> np.ndarray:
         img_float = image.astype(np.float32) / 255.0
         height, width = img_float.shape[:2]
-        adapted = np.zeros_like(img_float)
         
-        window_size = min(height, width) // 10
-        step = window_size // 2
+        # Use gaussian weighting instead of hard windows to prevent artifacts
+        window_size = min(height, width) // 8
+        sigma = window_size / 3.0
+        
+        # Create output image initialized with original
+        adapted = img_float.copy()
         
         global_mean = np.mean(img_float, axis=(0, 1))
         
+        # Process with overlapping gaussian windows
+        step = window_size // 2
         for y in range(0, height - window_size, step):
             for x in range(0, width - window_size, step):
                 patch = img_float[y:y+window_size, x:x+window_size]
                 local_mean = np.mean(patch, axis=(0, 1))
                 
+                # Gentle correction
                 correction = global_mean / (local_mean + 1e-6)
+                correction = np.clip(correction, 0.8, 1.2)
                 
-                center_y = y + window_size // 4
-                center_x = x + window_size // 4
-                end_y = min(center_y + window_size // 2, height)
-                end_x = min(center_x + window_size // 2, width)
+                # Create gaussian weight mask
+                center_y, center_x = window_size // 2, window_size // 2
+                yy, xx = np.meshgrid(np.arange(window_size), np.arange(window_size), indexing='ij')
+                weight = np.exp(-((yy - center_y)**2 + (xx - center_x)**2) / (2 * sigma**2))
                 
-                adapted[center_y:end_y, center_x:end_x] = np.maximum(
-                    adapted[center_y:end_y, center_x:end_x],
-                    img_float[center_y:end_y, center_x:end_x] * correction
-                )
+                # Apply weighted correction
+                for c in range(3):
+                    corrected_patch = patch[:, :, c] * correction[c]
+                    weighted_correction = patch[:, :, c] + weight * (corrected_patch - patch[:, :, c])
+                    
+                    # Blend with existing values
+                    y_end = min(y + window_size, height)
+                    x_end = min(x + window_size, width)
+                    adapted[y:y_end, x:x_end, c] = np.maximum(
+                        adapted[y:y_end, x:x_end, c],
+                        weighted_correction[:y_end-y, :x_end-x]
+                    )
         
         return (np.clip(adapted, 0, 1) * 255).astype(np.uint8)
     
@@ -112,6 +143,28 @@ class ColorConstancyEnhancer:
         else:
             return np.mean(image, axis=(0, 1)) / 255.0
     
+    def gentle_combined_enhancement(self, image: np.ndarray) -> np.ndarray:
+        """Gentle combination of methods to prevent overcorrection"""
+        # Start with mild gray world correction
+        img = self.gray_world_correction(image)
+        
+        # Apply very gentle von Kries adaptation
+        img_float = img.astype(np.float32) / 255.0
+        illuminant_estimate = np.mean(img_float, axis=(0, 1))
+        target_illuminant = np.array([0.33, 0.33, 0.33])
+        
+        # Much gentler correction
+        adaptation_coefficients = target_illuminant / (illuminant_estimate + 1e-6)
+        adaptation_coefficients = np.clip(adaptation_coefficients, 0.7, 1.4)
+        
+        # Apply only 50% of the correction
+        adaptation_coefficients = 1.0 + 0.5 * (adaptation_coefficients - 1.0)
+        
+        img_float *= adaptation_coefficients
+        img = (np.clip(img_float, 0, 1) * 255).astype(np.uint8)
+        
+        return img
+    
     def comprehensive_enhancement(self, image: np.ndarray, method: str = 'combined') -> np.ndarray:
         enhancement_methods = {
             'gray_world': self.gray_world_correction,
@@ -124,10 +177,8 @@ class ColorConstancyEnhancer:
         if method in enhancement_methods:
             return enhancement_methods[method](image)
         elif method == 'combined':
-            img = self.gray_world_correction(image)
-            img = self.von_kries_adaptation(img)
-            img = self.retinex_enhancement(img, sigma=20)
-            return img
+            # Use the new gentle combined method
+            return self.gentle_combined_enhancement(image)
         else:
             raise ValueError(f"Unknown method: {method}")
     
