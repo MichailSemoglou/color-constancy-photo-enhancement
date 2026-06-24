@@ -211,10 +211,10 @@ Foster, D. H. (2011). Color constancy. _Vision Research_, 51(7), 674–700. http
 Additional references:
 
 - Buchsbaum, G. (1980). A spatial processor model for object colour perception. _Journal of the Franklin Institute_, 310(1), 1–26.
-- von Kries, J. (1902). Chromatic adaptation. _Festschrift der Albrecht-Ludwigs-Universität_, 145–158.
+- von Kries, J. (1902). Theoretische Studien über die Umstimmung des Sehorgans. _Festschrift der Albrecht-Ludwigs-Universität_, 143–158.
 - Land, E. H., & McCann, J. J. (1971). Lightness and retinex theory. _Journal of the Optical Society of America_, 61(1), 1–11.
 - Jobson, D. J., Rahman, Z., & Woodell, G. A. (1997). A multiscale retinex for bridging the gap between colour images and the human observation of scenes. _IEEE Transactions on Image Processing_, 6(7), 965–976.
-- Hordley, S. D., & Finlayson, G. D. (2004). Reevaluation of colour constancy algorithm performance. _Journal of the Optical Society of America A_, 23(5), 1008–1020.
+- Hordley, S. D., & Finlayson, G. D. (2006). Reevaluation of colour constancy algorithm performance. _Journal of the Optical Society of America A_, 23(5), 1008–1020.
 
 ## License
 
