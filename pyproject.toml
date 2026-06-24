@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "color-constancy-enhancement"
+version = "1.1.0"
+description = "Photo enhancement using color constancy algorithms"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Michail Semoglou", email = "m.semoglou@tongji.edu.cn" },
+]
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+]
+keywords = [
+    "color constancy",
+    "image processing",
+    "computer vision",
+    "photo enhancement",
+    "color correction",
+    "illuminant estimation",
+    "retinex",
+    "von kries adaptation",
+]
+dependencies = [
+    "opencv-python>=4.8",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "mypy>=1.7",
+]
+
+[project.scripts]
+color-constancy-enhance = "color_constancy.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
+"Bug Reports" = "https://github.com/MichailSemoglou/color-constancy-photo-enhancement/issues"
+Source = "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
+
+[tool.setuptools]
+py-modules = ["color_constancy_enhancer"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["color_constancy*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore = ["E501"]  # line length handled by formatter
+
+[tool.mypy]
+python_version = "3.9"
+strict = false
+ignore_missing_imports = true

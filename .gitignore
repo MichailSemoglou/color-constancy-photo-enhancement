@@ -237,3 +237,6 @@ __marimo__/
 *.NEF
 *.ORF
 *.SR2
+
+# Papers
+papers/
