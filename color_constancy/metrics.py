@@ -14,7 +14,7 @@ def angular_error(estimated: np.ndarray, ground_truth: np.ndarray) -> float:
 
     The angular error is the angle (in degrees) between two chromaticity
     vectors in RGB space.  It is the standard evaluation metric for illuminant
-    estimation algorithms (Hordley & Finlayson, 2004).  A value of ``0°``
+    estimation algorithms (Hordley & Finlayson, 2006).  A value of ``0°``
     is a perfect estimate; larger values indicate greater divergence.
 
     Parameters
@@ -31,7 +31,7 @@ def angular_error(estimated: np.ndarray, ground_truth: np.ndarray) -> float:
 
     References
     ----------
-    Hordley, S. D., & Finlayson, G. D. (2004). Reevaluation of colour
+    Hordley, S. D., & Finlayson, G. D. (2006). Reevaluation of color
     constancy algorithm performance. *Journal of the Optical Society of
     America A*, 23(5), 1008–1020.
     """
