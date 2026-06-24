@@ -7,7 +7,6 @@ import pytest
 
 from color_constancy.metrics import angular_error, color_statistics, psnr, ssim
 
-
 # ---------------------------------------------------------------------------
 # angular_error
 # ---------------------------------------------------------------------------

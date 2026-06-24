@@ -1,6 +1,6 @@
 """Sequential algorithm pipeline and factory helpers."""
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 

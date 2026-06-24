@@ -1,10 +1,11 @@
 """Tests for the color_constancy CLI (create_parser, main)."""
 
-import numpy as np
-import pytest
-import cv2
 from pathlib import Path
 from unittest.mock import patch
+
+import cv2
+import numpy as np
+import pytest
 
 from color_constancy.cli import create_parser, main
 

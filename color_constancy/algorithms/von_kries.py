@@ -1,6 +1,5 @@
 """Von Kries chromatic adaptation."""
 
-from typing import Optional
 
 import numpy as np
 

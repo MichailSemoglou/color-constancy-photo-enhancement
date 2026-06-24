@@ -3,12 +3,10 @@
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 
 from .algorithms import (
-    AlgorithmPipeline,
     ColorConstancyAlgorithm,
     GrayWorldCorrection,
     RetinexEnhancement,
@@ -24,7 +22,7 @@ from .visualization import display_comparison, visualize_illuminant
 # Registry of available single-algorithm methods.
 # The "combined" entry is built via build_combined_pipeline() to keep it
 # separate from the individually-parameterised algorithms.
-_METHODS: Dict[str, ColorConstancyAlgorithm] = {
+_METHODS: dict[str, ColorConstancyAlgorithm] = {
     "gray_world": GrayWorldCorrection(),
     "white_patch": WhitePatchCorrection(),
     "von_kries": VonKriesAdaptation(),
@@ -73,7 +71,7 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _print_stats(stats: Dict[str, float], label: str) -> None:
+def _print_stats(stats: dict[str, float], label: str) -> None:
     print(f"\n{label}:")
     print(
         f"  Mean RGB : ({stats['mean_r']:.3f}, {stats['mean_g']:.3f},"

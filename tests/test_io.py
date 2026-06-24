@@ -1,8 +1,8 @@
 """Tests for color_constancy.io (load_image, save_image, validation)."""
 
+import cv2
 import numpy as np
 import pytest
-import cv2
 
 from color_constancy.io import load_image, save_image
 

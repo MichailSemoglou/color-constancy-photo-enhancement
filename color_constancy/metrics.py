@@ -4,7 +4,6 @@ All functions operate on **float32** arrays with pixel values in ``[0, 1]``
 unless otherwise stated.
 """
 
-from typing import Dict
 
 import numpy as np
 from scipy.ndimage import uniform_filter
@@ -134,7 +133,7 @@ def ssim(reference: np.ndarray, distorted: np.ndarray) -> float:
     return float(np.mean(channel_ssims))
 
 
-def color_statistics(image: np.ndarray) -> Dict[str, float]:
+def color_statistics(image: np.ndarray) -> dict[str, float]:
     """Compute per-channel summary statistics for a float32 image.
 
     Parameters
