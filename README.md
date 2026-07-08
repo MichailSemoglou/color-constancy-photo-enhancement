@@ -3,6 +3,9 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/MichailSemoglou/color-constancy-photo-enhancement/actions/workflows/ci.yml/badge.svg)](https://github.com/MichailSemoglou/color-constancy-photo-enhancement/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
 
 A Python implementation of color constancy algorithms for photo enhancement, based on the comprehensive review by Foster (2011) in _Vision Research_.
 
