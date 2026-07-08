@@ -45,14 +45,14 @@ def display_comparison(
 
     if show:
         plt.show()
-    else:
-        plt.close(fig)
+    plt.close(fig)
 
 
 def visualize_illuminant(
     image: np.ndarray,
     illuminant: np.ndarray,
     save_path: Optional[str] = None,
+    show: bool = True,
 ) -> None:
     """Show per-channel histograms with the estimated illuminant marked.
 
@@ -69,6 +69,10 @@ def visualize_illuminant(
         Estimated illuminant, shape ``(3,)``.
     save_path:
         If provided, save the figure before displaying.
+    show:
+        If ``True``, call ``plt.show()`` to open an interactive window.
+        Set to ``False`` for save-only or headless runs; the figure is
+        closed automatically so no resources are leaked.
     """
     channel_names = ["Red", "Green", "Blue"]
     colors = ["red", "green", "blue"]
@@ -101,4 +105,6 @@ def visualize_illuminant(
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
 
-    plt.show()
+    if show:
+        plt.show()
+    plt.close(fig)
