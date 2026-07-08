@@ -1,6 +1,5 @@
 # Color Constancy Photo Enhancement
 
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/MichailSemoglou/color-constancy-photo-enhancement/actions/workflows/ci.yml/badge.svg)](https://github.com/MichailSemoglou/color-constancy-photo-enhancement/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
