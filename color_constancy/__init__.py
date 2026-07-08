@@ -27,7 +27,7 @@ from .io import load_image, save_image
 from .metrics import angular_error, color_statistics, psnr, ssim
 from .visualization import display_comparison, visualize_illuminant
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 __all__ = [
     # algorithms
