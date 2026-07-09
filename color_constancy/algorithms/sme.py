@@ -54,7 +54,7 @@ def _chroma(lab: np.ndarray) -> np.ndarray:
     return np.sqrt(a * a + b * b)
 
 
-def _sigmoid(x: "np.ndarray | float", midpoint: float, steepness: float) -> np.ndarray:
+def _sigmoid(x: np.ndarray | float, midpoint: float, steepness: float) -> np.ndarray:
     """Logistic sigmoid: 1 / (1 + exp(-steepness * (x - midpoint)))."""
     x = np.asarray(x, dtype=np.float32)
     return 1.0 / (1.0 + np.exp(-steepness * (x - midpoint)))
