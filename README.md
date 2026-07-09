@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/MichailSemoglou/color-constancy-photo-enhancement/actions/workflows/ci.yml/badge.svg)](https://github.com/MichailSemoglou/color-constancy-photo-enhancement/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/color-constancy-enhancement?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=BLUE&left_text=downloads)](https://pepy.tech/projects/color-constancy-enhancement)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21278448.svg)](https://doi.org/10.5281/zenodo.21278448)
 
