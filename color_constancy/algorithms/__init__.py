@@ -3,7 +3,7 @@
 from .base import ColorConstancyAlgorithm
 from .gray_world import GrayWorldCorrection
 from .pipeline import AlgorithmPipeline, build_combined_pipeline
-from .retinex import RetinexEnhancement
+from .retinex import MSRCR, MultiScaleRetinex, RetinexEnhancement
 from .spatial import SpatialColorCorrection
 from .von_kries import VonKriesAdaptation
 from .white_patch import WhitePatchCorrection
@@ -14,6 +14,8 @@ __all__ = [
     "WhitePatchCorrection",
     "VonKriesAdaptation",
     "RetinexEnhancement",
+    "MultiScaleRetinex",
+    "MSRCR",
     "SpatialColorCorrection",
     "AlgorithmPipeline",
     "build_combined_pipeline",

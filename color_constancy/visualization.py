@@ -1,4 +1,4 @@
-"""Visualisation helpers for results and diagnostic inspection."""
+"""Visualization helpers for results and diagnostic inspection."""
 
 from typing import Optional
 
@@ -35,7 +35,7 @@ def display_comparison(
     ax1.axis("off")
 
     ax2.imshow(enhanced)
-    ax2.set_title("Enhanced Image (Colour Constancy)")
+    ax2.set_title("Enhanced Image (Color Constancy)")
     ax2.axis("off")
 
     plt.tight_layout()

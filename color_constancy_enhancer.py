@@ -22,7 +22,9 @@ from __future__ import annotations
 import numpy as np
 
 from color_constancy import (
+    MSRCR,
     GrayWorldCorrection,
+    MultiScaleRetinex,
     RetinexEnhancement,
     SpatialColorCorrection,
     VonKriesAdaptation,
@@ -40,6 +42,8 @@ _SINGLE_METHODS = {
     "white_patch": WhitePatchCorrection,
     "von_kries": VonKriesAdaptation,
     "retinex": RetinexEnhancement,
+    "msr": MultiScaleRetinex,
+    "msrcr": MSRCR,
     "spatial": SpatialColorCorrection,
 }
 

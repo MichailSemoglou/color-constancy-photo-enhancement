@@ -9,16 +9,16 @@ class GrayWorldCorrection(ColorConstancyAlgorithm):
     """Gray World illuminant estimation (Buchsbaum, 1980).
 
     Assumes the spatial average of scene reflectances is achromatic: the mean
-    of each colour channel over the whole image should equal the global mean
+    of each color channel over the whole image should equal the global mean
     brightness.  The illuminant is estimated as the per-channel spatial mean,
     and each channel is scaled so that all three means become equal.
 
     This assumption breaks down for images dominated by a single hue (e.g.
-    sunsets, grass fields, clear sky), where the grey-world prior does not hold.
+    sunsets, grass fields, clear sky), where the gray-world prior does not hold.
 
     References
     ----------
-    Buchsbaum, G. (1980). A spatial processor model for object colour perception.
+    Buchsbaum, G. (1980). A spatial processor model for object color perception.
     *Journal of the Franklin Institute*, 310(1), 1–26.
     """
 
@@ -38,7 +38,7 @@ class GrayWorldCorrection(ColorConstancyAlgorithm):
         return image.mean(axis=(0, 1)).astype(np.float32)
 
     def process(self, image: np.ndarray) -> np.ndarray:
-        """Apply Grey World correction.
+        """Apply Gray World correction.
 
         Parameters
         ----------

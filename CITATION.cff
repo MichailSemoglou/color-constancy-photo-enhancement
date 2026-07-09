@@ -25,8 +25,8 @@ keywords:
   - "retinex"
   - "von kries adaptation"
 license: MIT
-version: "1.1.0"
-date-released: "2025-07-16"
+version: "1.2.0"
+date-released: "2026-07-09"
 preferred-citation:
   type: software
   authors:
@@ -36,7 +36,7 @@ preferred-citation:
       email: "m.semoglou@tongji.edu.cn"
   title: "Color Constancy Photo Enhancement"
   url: "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
-  version: "1.1.0"
+  version: "1.2.0"
   year: 2026
 references:
   - type: article
@@ -78,7 +78,7 @@ references:
     authors:
       - family-names: "Buchsbaum"
         given-names: "Gershon"
-    title: "A spatial processor model for object colour perception"
+    title: "A spatial processor model for object color perception"
     journal: "Journal of the Franklin Institute"
     volume: 310
     issue: 1
@@ -86,6 +86,22 @@ references:
     end: 26
     year: 1980
     doi: "10.1016/0016-0032(80)90058-7"
+  - type: article
+    authors:
+      - family-names: "Jobson"
+        given-names: "Daniel J."
+      - family-names: "Rahman"
+        given-names: "Zia-ur"
+      - family-names: "Woodell"
+        given-names: "Glenn A."
+    title: "A multiscale retinex for bridging the gap between color images and the human observation of scenes"
+    journal: "IEEE Transactions on Image Processing"
+    volume: 6
+    issue: 7
+    start: 965
+    end: 976
+    year: 1997
+    doi: "10.1109/83.597272"
   - type: article
     authors:
       - family-names: "Maloney"

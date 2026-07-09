@@ -9,11 +9,11 @@ class WhitePatchCorrection(ColorConstancyAlgorithm):
     """White Patch / Max-RGB illuminant estimation (Land & McCann, 1971).
 
     Assumes that the brightest surface in the scene reflects the illuminant
-    maximally across all wavelengths.  Each colour channel is normalised by
+    maximally across all wavelengths.  Each color channel is normalized by
     its spatial maximum, mapping the brightest pixel to pure white.
 
     This assumption fails when the image contains specular highlights that are
-    coloured (e.g. metallic objects) or when the brightest pixel is a
+    colored (e.g. metallic objects) or when the brightest pixel is a
     single-channel saturated region rather than a white surface.
 
     References

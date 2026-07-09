@@ -1,4 +1,4 @@
-"""Quantitative evaluation metrics for colour constancy research.
+"""Quantitative evaluation metrics for color constancy research.
 
 All functions operate on **float32** arrays with pixel values in ``[0, 1]``
 unless otherwise stated.

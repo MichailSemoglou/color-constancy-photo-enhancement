@@ -1,4 +1,4 @@
-"""Spatially-varying local colour correction."""
+"""Spatially-varying local color correction."""
 
 import numpy as np
 from scipy import ndimage
@@ -7,12 +7,12 @@ from .base import ColorConstancyAlgorithm
 
 
 class SpatialColorCorrection(ColorConstancyAlgorithm):
-    """Spatially-varying local colour correction.
+    """Spatially-varying local color correction.
 
     Estimates a smooth per-pixel local illuminant using a large Gaussian
-    neighbourhood mean (computed via ``scipy.ndimage.gaussian_filter`` for
+    neighborhood mean (computed via ``scipy.ndimage.gaussian_filter`` for
     efficiency).  Each pixel is then corrected toward the global mean
-    relative to its local neighbourhood.
+    relative to its local neighborhood.
 
     The correction ratio is clipped to
     ``[1 - correction_strength, 1 + correction_strength]`` to prevent
@@ -35,7 +35,7 @@ class SpatialColorCorrection(ColorConstancyAlgorithm):
         self.correction_strength = correction_strength
 
     def process(self, image: np.ndarray) -> np.ndarray:
-        """Apply spatially-varying local colour correction.
+        """Apply spatially-varying local color correction.
 
         Parameters
         ----------
@@ -48,7 +48,7 @@ class SpatialColorCorrection(ColorConstancyAlgorithm):
             Corrected image, same shape and dtype.
         """
         height, width = image.shape[:2]
-        # Neighbourhood radius: one-eighth of the shortest spatial dimension,
+        # Neighborhood radius: one-eighth of the shortest spatial dimension,
         # with a minimum of 8 to keep the filter meaningful.
         window_size = max(8, min(height, width) // 8)
         sigma = window_size / 3.0
