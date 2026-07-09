@@ -6,7 +6,7 @@ import numpy as np
 
 from .base import ColorConstancyAlgorithm
 from .gray_world import GrayWorldCorrection
-from .retinex import RetinexEnhancement
+from .retinex import MSRCR
 from .von_kries import VonKriesAdaptation
 
 
@@ -23,8 +23,9 @@ class AlgorithmPipeline(ColorConstancyAlgorithm):
         instances to apply in order.
     """
 
-    def __init__(self, steps: Sequence[ColorConstancyAlgorithm]) -> None:
+    def __init__(self, steps: Sequence[ColorConstancyAlgorithm], _repr_name: str = "") -> None:
         self.steps = list(steps)
+        self._repr_name = _repr_name
 
     def process(self, image: np.ndarray) -> np.ndarray:
         """Apply each step in order.
@@ -46,14 +47,15 @@ class AlgorithmPipeline(ColorConstancyAlgorithm):
 
 
 def build_combined_pipeline() -> AlgorithmPipeline:
-    """Return the default combined pipeline: Grey World → Von Kries → Retinex.
+    """Return the default combined pipeline: Grey World → Von Kries → MSRCR.
 
     The three stages complement each other:
 
     1. **Grey World** removes the gross global colour cast.
     2. **Von Kries** (gentler parameters) fine-tunes the illuminant adaptation
        without over-correcting naturally coloured scenes.
-    3. **Retinex** enhances local contrast and residual tonal range.
+    3. **MSRCR** (Multi-Scale Retinex with Color Restoration) enhances local
+       contrast and preserves colour fidelity.
 
     Returns
     -------
@@ -64,6 +66,6 @@ def build_combined_pipeline() -> AlgorithmPipeline:
         [
             GrayWorldCorrection(),
             VonKriesAdaptation(adaptation_strength=0.5, clip_range=(0.7, 1.4)),
-            RetinexEnhancement(),
+            MSRCR(blend_alpha=0.7),
         ]
     )

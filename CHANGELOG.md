@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] – 2026-07-09
+
+### Added
+
+- **Multi-Scale Retinex (MSR)**: new `MultiScaleRetinex` class averaging SSR outputs at three scales (15, 80, 250) for balanced dynamic range and tonal rendition (Jobson et al., 1997).
+- **MSRCR (Multi-Scale Retinex with Color Restoration)**: new `MSRCR` class with configurable gain/bias for vivid output without desaturation.
+- **Benchmark harness** (`color_constancy.benchmark`): CLI (`color-constancy-benchmark`) + API for evaluating algorithms on standard CSV datasets with angular-error statistics (mean, median, trimean, best-25%, worst-5%).
+- **Per-algorithm CLI parameters**: `--sigma`, `--sigmas`, `--blend-alpha`, `--adaptation-strength`, `--correction-strength`, `--cr-gain`, `--cr-bias`, `--param`, `--msrcr`.
+- **Named presets** (`--preset night`, `indoor_tungsten`, `sunset`, `high_contrast`, `vivid`, `subtle`) for quick scenario-specific configuration.
+- New `msr` and `msrcr` values for `--method`.
+
+### Changed
+
+- **Default combined pipeline now uses MSRCR** instead of SSR for higher-quality output.
+
 ## [1.1.2] – 2026-07-09
 
 ### Fixed

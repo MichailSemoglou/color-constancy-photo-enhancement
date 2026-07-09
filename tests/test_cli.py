@@ -36,7 +36,7 @@ def test_parser_default_flags_are_false():
 
 @pytest.mark.parametrize(
     "method",
-    ["gray_world", "white_patch", "von_kries", "retinex", "spatial", "combined"],
+    ["gray_world", "white_patch", "von_kries", "retinex", "msr", "msrcr", "spatial", "combined"],
 )
 def test_parser_accepts_all_methods(method):
     args = create_parser().parse_args(["img.jpg", "--method", method])
@@ -73,7 +73,7 @@ def test_main_saves_output(tmp_path):
 
 @pytest.mark.parametrize(
     "method",
-    ["gray_world", "white_patch", "von_kries", "retinex", "spatial", "combined"],
+    ["gray_world", "white_patch", "von_kries", "retinex", "msr", "msrcr", "spatial", "combined"],
 )
 def test_main_all_methods_produce_output(tmp_path, method):
     src = tmp_path / "src.png"

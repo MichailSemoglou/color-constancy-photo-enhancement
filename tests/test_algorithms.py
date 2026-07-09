@@ -4,6 +4,7 @@ Covers:
 - Output shape, dtype, and value-range invariants (parametrised over all algorithms).
 - Algorithm-specific correctness assertions.
 - Pipeline composition.
+- Multi-Scale Retinex (MSR) and MSRCR.
 """
 
 import numpy as np
@@ -12,6 +13,8 @@ import pytest
 from color_constancy.algorithms import (
     AlgorithmPipeline,
     GrayWorldCorrection,
+    MSRCR,
+    MultiScaleRetinex,
     RetinexEnhancement,
     SpatialColorCorrection,
     VonKriesAdaptation,
@@ -28,6 +31,8 @@ _ALL_ALGORITHMS = [
     WhitePatchCorrection(),
     VonKriesAdaptation(),
     RetinexEnhancement(),
+    MultiScaleRetinex(),
+    MSRCR(),
     SpatialColorCorrection(),
     build_combined_pipeline(),
 ]
@@ -213,3 +218,63 @@ def test_build_combined_pipeline_type_and_length():
     p = build_combined_pipeline()
     assert isinstance(p, AlgorithmPipeline)
     assert len(p.steps) == 3
+
+
+# ---------------------------------------------------------------------------
+# Multi-Scale Retinex (MSR)
+# ---------------------------------------------------------------------------
+
+
+def test_msr_blend_alpha_zero_returns_original(random_image):
+    out = MultiScaleRetinex(blend_alpha=0.0).process(random_image)
+    np.testing.assert_allclose(out, random_image, atol=1e-5)
+
+
+def test_msr_output_preserves_invariants(random_image):
+    out = MultiScaleRetinex().process(random_image)
+    assert out.shape == random_image.shape
+    assert out.dtype == np.float32
+    assert float(out.min()) >= 0.0
+    assert float(out.max()) <= 1.0
+
+
+def test_msr_different_scales_produces_different_output(random_image):
+    msr_small = MultiScaleRetinex(sigmas=(5.0, 10.0, 20.0))
+    msr_large = MultiScaleRetinex(sigmas=(50.0, 150.0, 300.0))
+    out_small = msr_small.process(random_image)
+    out_large = msr_large.process(random_image)
+    assert not np.allclose(out_small, out_large, atol=0.01)
+
+
+# ---------------------------------------------------------------------------
+# MSRCR
+# ---------------------------------------------------------------------------
+
+
+def test_msrcr_blend_alpha_zero_returns_original(random_image):
+    out = MSRCR(blend_alpha=0.0).process(random_image)
+    np.testing.assert_allclose(out, random_image, atol=1e-5)
+
+
+def test_msrcr_output_in_unit_range(random_image):
+    out = MSRCR().process(random_image)
+    assert float(out.min()) >= 0.0
+    assert float(out.max()) <= 1.0
+    assert np.isfinite(out).all()
+
+
+def test_msrcr_different_gains_produce_different_output(random_image):
+    vivid = MSRCR(cr_gain=200.0, cr_bias=-60.0)
+    muted = MSRCR(cr_gain=50.0, cr_bias=-20.0)
+    out_vivid = vivid.process(random_image)
+    out_muted = muted.process(random_image)
+    assert not np.allclose(out_vivid, out_muted, atol=0.005)
+
+
+def test_combined_pipeline_uses_msrcr(random_image):
+    p = build_combined_pipeline()
+    assert any("MSRCR" in type(s).__name__ for s in p.steps)
+    out = p.process(random_image)
+    assert out.shape == random_image.shape
+    assert float(out.min()) >= 0.0
+    assert float(out.max()) <= 1.0

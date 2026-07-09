@@ -1,35 +1,182 @@
 """Command-line interface for color_constancy."""
 
 import argparse
+import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
 from .algorithms import (
+    MSRCR,
+    AlgorithmPipeline,
     ColorConstancyAlgorithm,
     GrayWorldCorrection,
+    MultiScaleRetinex,
     RetinexEnhancement,
     SpatialColorCorrection,
     VonKriesAdaptation,
     WhitePatchCorrection,
-    build_combined_pipeline,
 )
 from .io import load_image, save_image
 from .metrics import color_statistics
 from .visualization import display_comparison, visualize_illuminant
 
-# Registry of available single-algorithm methods.
-# The "combined" entry is built via build_combined_pipeline() to keep it
-# separate from the individually-parameterised algorithms.
-_METHODS: dict[str, ColorConstancyAlgorithm] = {
-    "gray_world": GrayWorldCorrection(),
-    "white_patch": WhitePatchCorrection(),
-    "von_kries": VonKriesAdaptation(),
-    "retinex": RetinexEnhancement(),
-    "spatial": SpatialColorCorrection(),
-    "combined": build_combined_pipeline(),
+
+def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgorithm:
+    """Construct the requested algorithm with the given parameters.
+
+    ``method`` can be any of the single-algorithm names, ``'combined'``, or the
+    new MSR/MSRCR variants ``'msr'`` and ``'msrcr'``.
+    """
+    if method == "combined":
+        # If user suppressed colour restoration, fall back to MSR.
+        if not params.get("msrcr", True):
+            return AlgorithmPipeline(
+                [
+                    GrayWorldCorrection(),
+                    VonKriesAdaptation(adaptation_strength=0.5, clip_range=(0.7, 1.4)),
+                    MultiScaleRetinex(
+                        sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
+                        blend_alpha=params.get("blend_alpha", 0.7),
+                    ),
+                ],
+                _repr_name="Combined (MSR)",
+            )
+        return AlgorithmPipeline(
+            [
+                GrayWorldCorrection(),
+                VonKriesAdaptation(adaptation_strength=0.5, clip_range=(0.7, 1.4)),
+                MSRCR(
+                    sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
+                    blend_alpha=params.get("blend_alpha", 0.7),
+                    cr_gain=params.get("cr_gain", 125.0),
+                    cr_bias=params.get("cr_bias", -46.0),
+                ),
+            ],
+            _repr_name="Combined (MSRCR)",
+        )
+
+    if method == "gray_world":
+        return GrayWorldCorrection()
+
+    if method == "white_patch":
+        return WhitePatchCorrection()
+
+    if method == "von_kries":
+        return VonKriesAdaptation(
+            adaptation_strength=params.get("adaptation_strength", 0.6),
+            clip_range=params.get("clip_range", (0.6, 1.7)),
+            gray_world_weight=params.get("gray_world_weight", 0.7),
+        )
+
+    if method == "retinex":
+        return RetinexEnhancement(
+            surround_sigma=params.get("sigma", 15.0),
+            blend_alpha=params.get("blend_alpha", 0.6),
+        )
+
+    if method == "msr":
+        return MultiScaleRetinex(
+            sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
+            blend_alpha=params.get("blend_alpha", 0.7),
+        )
+
+    if method == "msrcr":
+        return MSRCR(
+            sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
+            blend_alpha=params.get("blend_alpha", 0.7),
+            cr_gain=params.get("cr_gain", 125.0),
+            cr_bias=params.get("cr_bias", -46.0),
+        )
+
+    if method == "spatial":
+        return SpatialColorCorrection(
+            correction_strength=params.get("correction_strength", 0.2),
+        )
+
+    raise ValueError(f"Unknown method: {method!r}")
+
+
+# Preset configurations for common photographic scenarios.
+_PRESETS: dict[str, dict[str, Any]] = {
+    "default": {"method": "combined"},
+    "night": {
+        "method": "combined",
+        "adaptation_strength": 0.4,
+        "clip_range": (0.5, 2.0),
+        "blend_alpha": 0.8,
+        "cr_gain": 150.0,
+        "cr_bias": -50.0,
+    },
+    "indoor_tungsten": {
+        "method": "von_kries",
+        "adaptation_strength": 0.8,
+        "clip_range": (0.5, 1.8),
+        "gray_world_weight": 0.5,
+    },
+    "sunset": {
+        "method": "combined",
+        "adaptation_strength": 0.3,
+        "blend_alpha": 0.5,
+        "cr_gain": 80.0,
+        "cr_bias": -30.0,
+    },
+    "high_contrast": {
+        "method": "msr",
+        "sigmas": (10.0, 60.0, 200.0),
+        "blend_alpha": 0.85,
+    },
+    "vivid": {
+        "method": "msrcr",
+        "sigmas": (15.0, 80.0, 250.0),
+        "blend_alpha": 0.6,
+        "cr_gain": 200.0,
+        "cr_bias": -60.0,
+    },
+    "subtle": {
+        "method": "spatial",
+        "correction_strength": 0.1,
+    },
 }
+
+
+def _parse_key_value(raw: str) -> dict[str, Any]:
+    """Parse ``key=value`` pairs into a dictionary with typed values."""
+    result: dict[str, Any] = {}
+    for pair in raw.split(","):
+        key, _, val = pair.partition("=")
+        if not key or not val:
+            continue
+        # Try to coerce to number / boolean.
+        if val.lower() == "true":
+            result[key.strip()] = True
+        elif val.lower() == "false":
+            result[key.strip()] = False
+        else:
+            try:
+                result[key.strip()] = int(val)
+            except ValueError:
+                try:
+                    result[key.strip()] = float(val)
+                except ValueError:
+                    result[key.strip()] = val
+    return result
+
+
+def _load_preset(name_or_path: str) -> dict[str, Any]:
+    """Load preset parameters by name or from a JSON/YAML-adjacent file."""
+    if name_or_path in _PRESETS:
+        return dict(_PRESETS[name_or_path])
+    path = Path(name_or_path)
+    if path.suffix in (".json",):
+        with open(path) as f:
+            return json.load(f)
+    raise ValueError(
+        f"Unknown preset: {name_or_path!r}. "
+        f"Available presets: {', '.join(sorted(_PRESETS))}"
+    )
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -41,7 +188,8 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("input_image", help="Path to the input image.")
     parser.add_argument(
         "--method",
-        choices=list(_METHODS),
+        choices=["gray_world", "white_patch", "von_kries", "retinex",
+                 "msr", "msrcr", "spatial", "combined"],
         default="combined",
         help="Colour constancy algorithm to apply.",
     )
@@ -68,7 +216,85 @@ def create_parser() -> argparse.ArgumentParser:
             "Only applies to algorithms that expose estimate_illuminant()."
         ),
     )
+
+    # --- Algorithm parameters ---
+    param_group = parser.add_argument_group("Algorithm parameters")
+    param_group.add_argument(
+        "--sigma", type=float, metavar="FLOAT",
+        help="Surround sigma for SSR Retinex (default: 15.0).",
+    )
+    param_group.add_argument(
+        "--sigmas", type=str, metavar="A,B,C",
+        help="Comma-separated sigma triplet for MSR/MSRCR (default: 15,80,250).",
+    )
+    param_group.add_argument(
+        "--blend-alpha", type=float, metavar="FLOAT",
+        help="Blend weight for Retinex/MSR/MSRCR output vs original.",
+    )
+    param_group.add_argument(
+        "--adaptation-strength", type=float, metavar="FLOAT",
+        help="Von Kries adaptation strength in [0, 1] (default: 0.6).",
+    )
+    param_group.add_argument(
+        "--correction-strength", type=float, metavar="FLOAT",
+        help="Spatial correction clipping half-width (default: 0.2).",
+    )
+    param_group.add_argument(
+        "--cr-gain", type=float, metavar="FLOAT",
+        help="MSRCR colour restoration gain (default: 125.0).",
+    )
+    param_group.add_argument(
+        "--cr-bias", type=float, metavar="FLOAT",
+        help="MSRCR colour restoration bias (default: -46.0).",
+    )
+    param_group.add_argument(
+        "--msrcr", type=bool, default=True, metavar="BOOL",
+        help="Enable MSRCR colour restoration in combined pipeline (default: true).",
+    )
+
+    # --- Bridging old-style param key=value ---
+    param_group.add_argument(
+        "--param", type=str, metavar="k=v,...",
+        help="Additional algorithm parameters as comma-separated key=value pairs.",
+    )
+
+    # --- Presets ---
+    preset_group = parser.add_argument_group("Presets")
+    preset_group.add_argument(
+        "--preset",
+        choices=list(_PRESETS),
+        default="default",
+        help="Load a named preset for quick configuration.",
+    )
+    preset_group.add_argument(
+        "--preset-file", type=str, metavar="PATH",
+        help="Load parameters from a JSON preset file.",
+    )
     return parser
+
+
+def _collect_params(args: argparse.Namespace) -> dict[str, Any]:
+    """Merge argparse flags into a params dictionary with correct typing."""
+    params: dict[str, Any] = {}
+
+    if args.sigma is not None:
+        params["sigma"] = args.sigma
+    if args.sigmas is not None:
+        params["sigmas"] = tuple(float(x.strip()) for x in args.sigmas.split(","))
+    if args.blend_alpha is not None:
+        params["blend_alpha"] = args.blend_alpha
+    if args.adaptation_strength is not None:
+        params["adaptation_strength"] = args.adaptation_strength
+    if args.correction_strength is not None:
+        params["correction_strength"] = args.correction_strength
+    if args.cr_gain is not None:
+        params["cr_gain"] = args.cr_gain
+    if args.cr_bias is not None:
+        params["cr_bias"] = args.cr_bias
+    if args.param is not None:
+        params.update(_parse_key_value(args.param))
+
+    return params
 
 
 def _print_stats(stats: dict[str, float], label: str) -> None:
@@ -93,6 +319,19 @@ def main() -> None:
         print(f"Error: input image '{input_path}' not found.", file=sys.stderr)
         sys.exit(1)
 
+    # Load preset, then override with CLI params.
+    preset_params: dict[str, Any] = {}
+    if args.preset != "default":
+        preset_params = _load_preset(args.preset)
+    if args.preset_file:
+        preset_params.update(_load_preset(args.preset_file))
+
+    cli_params = _collect_params(args)
+    merged = {**preset_params, **cli_params}
+
+    # Determine method: presets may override.
+    method = cli_params.pop("method", None) or preset_params.pop("method", None) or args.method
+
     try:
         original_uint8 = load_image(str(input_path))
     except (FileNotFoundError, ValueError) as exc:
@@ -101,7 +340,7 @@ def main() -> None:
 
     try:
         original = original_uint8.astype(np.float32) / 255.0
-        algorithm = _METHODS[args.method]
+        algorithm = _build_algorithm(method, merged)
         enhanced = algorithm.process(original)
         enhanced_uint8 = (enhanced * 255.0).astype(np.uint8)
 
@@ -128,7 +367,7 @@ def main() -> None:
                 show=args.show,
             )
 
-        print(f"\nEnhancement complete ({args.method}).")
+        print(f"\nEnhancement complete ({method}).")
         if args.output:
             print(f"Saved: {args.output}")
 
