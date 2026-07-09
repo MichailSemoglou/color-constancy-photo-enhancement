@@ -26,6 +26,7 @@ from color_constancy import (
     GrayWorldCorrection,
     MultiScaleRetinex,
     RetinexEnhancement,
+    SelectiveMidtoneEnhancement,
     SpatialColorCorrection,
     VonKriesAdaptation,
     WhitePatchCorrection,
@@ -45,6 +46,7 @@ _SINGLE_METHODS = {
     "msr": MultiScaleRetinex,
     "msrcr": MSRCR,
     "spatial": SpatialColorCorrection,
+    "sme": SelectiveMidtoneEnhancement,
 }
 
 
