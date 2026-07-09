@@ -344,11 +344,11 @@ sme = SelectiveMidtoneEnhancement(
 <table><tr>
 <td><b>Original</b></td><td><b>SME Enhanced (auto)</b></td>
 </tr><tr>
-<td><img src="docs/images/sme_landscape_original.jpg" width="320" alt="Landscape original"></td>
-<td><img src="docs/images/sme_landscape_enhanced.jpg" width="320" alt="Landscape SME enhanced"></td>
+<td><img src="docs/images/sme_landscape_forest_original.jpg" width="320" alt="Forest landscape original"></td>
+<td><img src="docs/images/sme_landscape_forest_enhanced.jpg" width="320" alt="Forest landscape SME enhanced"></td>
 </tr><tr>
-<td><img src="docs/images/sme_outdoor_warm_original.jpg" width="320" alt="Outdoor original"></td>
-<td><img src="docs/images/sme_outdoor_warm_enhanced.jpg" width="320" alt="Outdoor SME enhanced"></td>
+<td><img src="docs/images/sme_outdoor_water_original.jpg" width="320" alt="Outdoor water original"></td>
+<td><img src="docs/images/sme_outdoor_water_enhanced.jpg" width="320" alt="Outdoor water SME enhanced"></td>
 </tr><tr>
 <td><img src="docs/images/sme_landscape_bright_original.jpg" width="320" alt="Bright landscape original"></td>
 <td><img src="docs/images/sme_landscape_bright_enhanced.jpg" width="320" alt="Bright landscape SME enhanced"></td>
