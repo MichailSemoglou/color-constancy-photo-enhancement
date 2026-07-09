@@ -5,13 +5,15 @@
 [![PyPI version](https://img.shields.io/pypi/v/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
 
-A Python implementation of color constancy algorithms for photo enhancement, based on the comprehensive review by Foster (2011) in _Vision Research_.
+A Python implementation of color constancy algorithms for photo enhancement, featuring both classical methods (Foster, 2011) and the novel **Selective Midtone Enhancement (SME)** — a perceptually-guided adaptive enhancer (Semoglou, 2026).
 
 ## Features
 
-Nine color constancy algorithms, a composable pipeline API, quantitative evaluation metrics, a full CLI, presets for common scenarios, and a benchmark harness for datasets:
+Ten color constancy algorithms, a composable pipeline API, quantitative evaluation metrics, a full CLI, presets for common scenarios, and a benchmark harness for datasets:
 
+- **Selective Midtone Enhancement (SME)**: Novel auto-adaptive algorithm with dynamic S-curve contrast, conditional saturation via Color Definition Confidence (CDC), and asymptotic highlight preservation
 - **Gray World Assumption**: Corrects color cast by assuming the spatial average of scene reflectances is neutral
 - **White Patch / Max-RGB**: Normalizes colors based on the brightest surface in the image
 - **Von Kries Adaptation**: Applies a diagonal cone-response transformation to simulate chromatic adaptation
@@ -93,6 +95,11 @@ color-constancy-enhance input.jpg --preset vivid --output vivid.jpg
 # Side-by-side comparison
 color-constancy-enhance input.jpg --show
 color-constancy-enhance input.jpg --comparison before_after.jpg --show
+
+# Selective Midtone Enhancement (SME) — auto-adaptive mode
+color-constancy-enhance input.jpg --method sme --output sme.jpg
+# Manual parameter control
+color-constancy-enhance input.jpg --method sme --param contrast_strength=1.2 --param saturation_gain=1.4 --output sme_custom.jpg
 
 # Channel statistics
 color-constancy-enhance input.jpg --stats
@@ -295,6 +302,58 @@ Estimates a per-pixel local illuminant using `scipy.ndimage.gaussian_filter` —
 
 Sequentially applies Grey World correction, Von Kries adaptation (gentler parameters), and MSRCR for comprehensive color correction with vivid, well-balanced output.
 
+### Selective Midtone Enhancement (SME)
+
+A novel, perceptually-guided enhancement algorithm with three stages:
+
+1. **Dynamic S-curve contrast** — Targets the interquartile range of luminance for midtone expansion while protecting shadows, highlights, and near-neutral tones via soft blend zones.
+2. **Conditional saturation boost** — Computes a per-pixel **Color Definition Confidence (CDC)** metric combining chroma magnitude with local hue/chroma variance. Only vivid, locally-uniform colors receive saturation gain; muted and near-neutral regions are left untouched.
+3. **Asymptotic highlight guard** — Soft-compresses values above 250/255 so pure white is never produced.
+
+**Auto-adaptive mode** (default): `contrast_strength` and `saturation_gain` are derived per-image from luminance IQR spread and chroma distribution. No manual tuning needed — a vivid photo gets a subtle touch while a flat/muted scene gets more aggressive treatment.
+
+```python
+from color_constancy import SelectiveMidtoneEnhancement, load_image
+import numpy as np
+
+# Auto-adaptive (recommended)
+sme = SelectiveMidtoneEnhancement()  # auto=True is default
+result = sme.process(image.astype("float32") / 255.0)
+
+# Manual control
+sme = SelectiveMidtoneEnhancement(
+    auto=False,
+    contrast_strength=1.2,
+    saturation_gain=1.4,
+    chroma_threshold=10.0,
+)
+```
+
+| Parameter | Default | Range | Description |
+|---|---|---|---|
+| `auto` | `True` | bool | Derive contrast/saturation per-image |
+| `contrast_strength` | 1.0 | 0.0–2.0 | Midtone expansion intensity |
+| `saturation_gain` | 1.25 | 1.0–1.5 | Max chroma multiplier for vivid colors |
+| `shadow_protection` | 0.10 | 0.0–0.3 | L fraction blended to identity (shadows) |
+| `highlight_protection` | 0.10 | 0.0–0.3 | L fraction blended to identity (highlights) |
+| `chroma_threshold` | 12.0 | 5.0–40.0 | Chroma midpoint for CDC sigmoid |
+| `cdc_threshold` | 0.5 | 0.0–1.0 | CDC cutoff for saturation gain activation |
+
+### Visual Examples
+
+<table><tr>
+<td><b>Original</b></td><td><b>SME Enhanced (auto)</b></td>
+</tr><tr>
+<td><img src="docs/images/sme_landscape_original.jpg" width="320" alt="Landscape original"></td>
+<td><img src="docs/images/sme_landscape_enhanced.jpg" width="320" alt="Landscape SME enhanced"></td>
+</tr><tr>
+<td><img src="docs/images/sme_outdoor_warm_original.jpg" width="320" alt="Outdoor original"></td>
+<td><img src="docs/images/sme_outdoor_warm_enhanced.jpg" width="320" alt="Outdoor SME enhanced"></td>
+</tr><tr>
+<td><img src="docs/images/sme_landscape_bright_original.jpg" width="320" alt="Bright landscape original"></td>
+<td><img src="docs/images/sme_landscape_bright_enhanced.jpg" width="320" alt="Bright landscape SME enhanced"></td>
+</tr></table>
+
 ## Running Tests
 
 ```bash
@@ -324,6 +383,8 @@ Additional references:
 - Land, E. H., & McCann, J. J. (1971). Lightness and retinex theory. _Journal of the Optical Society of America_, 61(1), 1–11.
 - Jobson, D. J., Rahman, Z., & Woodell, G. A. (1997). A multiscale retinex for bridging the gap between color images and the human observation of scenes. _IEEE Transactions on Image Processing_, 6(7), 965–976.
 - Hordley, S. D., & Finlayson, G. D. (2006). Reevaluation of color constancy algorithm performance. _Journal of the Optical Society of America A_, 23(5), 1008–1020.
+
+- Semoglou, M. (2026). Selective Midtone Enhancement: Dynamic Contrast Adjustment with Conditional Saturation Control.  Proposed algorithm. Included in this package.
 
 ## License
 

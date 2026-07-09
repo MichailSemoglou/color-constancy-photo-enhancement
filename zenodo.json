@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "title": "Color Constancy Photo Enhancement",
+    "description": "A Python implementation of color constancy algorithms for photo enhancement, based on the comprehensive review by Foster (2011). Includes classical methods (Gray World, White Patch, Von Kries, Retinex, MSR, MSRCR, Spatial Color Correction) and the novel Selective Midtone Enhancement (SME) — a perceptually-guided adaptive enhancer with dynamic S-curve contrast and conditional saturation control via the Color Definition Confidence (CDC) metric. Features a composable pipeline API, CLI, benchmark harness, and named presets for common photographic scenarios.",
+    "creators": [
+      {
+        "name": "Semoglou, Michail",
+        "orcid": "0009-0003-3268-5657",
+        "affiliation": "Tongji University"
+      }
+    ],
+    "license": "MIT",
+    "keywords": [
+      "color constancy",
+      "image processing",
+      "computer vision",
+      "photo enhancement",
+      "color correction",
+      "illuminant estimation",
+      "retinex",
+      "von kries adaptation",
+      "midtone enhancement",
+      "selective saturation"
+    ],
+    "version": "1.3.0",
+    "publication_date": "2026-07-09",
+    "access_right": "open",
+    "upload_type": "software",
+    "related_identifiers": [
+      {
+        "relation": "isSupplementTo",
+        "identifier": "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
+      }
+    ],
+    "references": [
+      "Foster, D. H. (2011). Color constancy. Vision Research, 51(7), 674–700.",
+      "Semoglou, M. (2026). Selective Midtone Enhancement: Dynamic Contrast Adjustment with Conditional Saturation Control."
+    ]
+  }
+}

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] – 2026-07-09
+
+### Added
+
+- **Selective Midtone Enhancement (SME)**: novel auto-adaptive enhancement algorithm with three-stage pipeline:
+  - IQR-driven adaptive S-curve contrast with shadow, highlight, and neutral-tone protection
+  - Conditional saturation boost gated by a novel Color Definition Confidence (CDC) metric
+  - Asymptotic highlight preservation guard (soft compression above 250/255)
+- Auto-adaptive mode derives `contrast_strength` and `saturation_gain` per-image from luminance spread and chroma distribution
+- 6 tunable parameters via `--param k=v` for manual control: `contrast_strength`, `saturation_gain`, `shadow_protection`, `highlight_protection`, `chroma_threshold`, `cdc_threshold`
+- 37 unit tests; validated on 50-image corpus (0/50 clipped, max pixel = 250)
+- Near-black image guard prevents pathological S-curve expansion on extreme low-key images
+- New `sme` value for `--method`
+
 ## [1.2.0] – 2026-07-09
 
 ### Added
