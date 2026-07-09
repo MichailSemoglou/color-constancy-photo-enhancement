@@ -339,6 +339,21 @@ sme = SelectiveMidtoneEnhancement(
 | `chroma_threshold` | 12.0 | 5.0–40.0 | Chroma midpoint for CDC sigmoid |
 | `cdc_threshold` | 0.5 | 0.0–1.0 | CDC cutoff for saturation gain activation |
 
+### Visual Examples
+
+<table><tr>
+<td><b>Original</b></td><td><b>SME Enhanced (auto)</b></td>
+</tr><tr>
+<td><img src="docs/images/sme_landscape_original.jpg" width="320" alt="Landscape original"></td>
+<td><img src="docs/images/sme_landscape_enhanced.jpg" width="320" alt="Landscape SME enhanced"></td>
+</tr><tr>
+<td><img src="docs/images/sme_outdoor_warm_original.jpg" width="320" alt="Outdoor original"></td>
+<td><img src="docs/images/sme_outdoor_warm_enhanced.jpg" width="320" alt="Outdoor SME enhanced"></td>
+</tr><tr>
+<td><img src="docs/images/sme_landscape_bright_original.jpg" width="320" alt="Bright landscape original"></td>
+<td><img src="docs/images/sme_landscape_bright_enhanced.jpg" width="320" alt="Bright landscape SME enhanced"></td>
+</tr></table>
+
 ## Running Tests
 
 ```bash
