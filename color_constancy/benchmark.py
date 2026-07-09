@@ -1,7 +1,7 @@
 """Benchmark harness for evaluating color constancy algorithms on standard datasets.
 
 Supports CSV-based datasets with ground-truth illuminants (e.g. Gehler-Shi,
-SFU Grey-Ball, NUS-8).  Reports per-method angular error statistics and
+SFU Gray-Ball, NUS-8).  Reports per-method angular error statistics and
 generates summary tables.
 
 Usage (CLI)::

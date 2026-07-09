@@ -1,20 +1,16 @@
 """Tests for the benchmark harness."""
 
 import csv
-import tempfile
-from pathlib import Path
 
 import numpy as np
 import pytest
 
+from color_constancy.algorithms import GrayWorldCorrection, WhitePatchCorrection
 from color_constancy.benchmark import (
     BenchmarkReport,
-    BenchmarkResults,
-    DatasetEntry,
     load_dataset,
     run_benchmark,
 )
-from color_constancy.algorithms import GrayWorldCorrection, WhitePatchCorrection
 from color_constancy.io import save_image
 
 
@@ -47,7 +43,7 @@ def test_load_dataset(tmp_dataset):
     assert len(entries) == 2
     assert entries[0].image_path.name == "neutral.png"
     assert entries[1].image_path.name == "red.png"
-    # Check normalisation: (1,1,1) → (1/3, 1/3, 1/3)
+    # Check normalization: (1,1,1) → (1/3, 1/3, 1/3)
     np.testing.assert_allclose(entries[0].illuminant, [1 / 3, 1 / 3, 1 / 3], atol=1e-6)
 
 

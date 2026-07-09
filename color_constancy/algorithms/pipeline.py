@@ -51,11 +51,11 @@ def build_combined_pipeline() -> AlgorithmPipeline:
 
     The three stages complement each other:
 
-    1. **Grey World** removes the gross global colour cast.
+    1. **Grey World** removes the gross global color cast.
     2. **Von Kries** (gentler parameters) fine-tunes the illuminant adaptation
-       without over-correcting naturally coloured scenes.
+       without over-correcting naturally colored scenes.
     3. **MSRCR** (Multi-Scale Retinex with Color Restoration) enhances local
-       contrast and preserves colour fidelity.
+       contrast and preserves color fidelity.
 
     Returns
     -------

@@ -13,12 +13,12 @@ A Python implementation of color constancy algorithms for photo enhancement, bas
 Nine color constancy algorithms, a composable pipeline API, quantitative evaluation metrics, a full CLI, presets for common scenarios, and a benchmark harness for datasets:
 
 - **Gray World Assumption**: Corrects color cast by assuming the spatial average of scene reflectances is neutral
-- **White Patch / Max-RGB**: Normalises colors based on the brightest surface in the image
+- **White Patch / Max-RGB**: Normalizes colors based on the brightest surface in the image
 - **Von Kries Adaptation**: Applies a diagonal cone-response transformation to simulate chromatic adaptation
-- **Retinex Enhancement (SSR)**: Uses centre-surround processing for local contrast enhancement (Single-Scale Retinex)
+- **Retinex Enhancement (SSR)**: Uses center-surround processing for local contrast enhancement (Single-Scale Retinex)
 - **Multi-Scale Retinex (MSR)**: Averages SSR at three scales (15, 80, 250) for balanced dynamic range (Jobson et al., 1997)
-- **MSRCR**: MSR with colour restoration for vivid output without desaturation (Jobson et al., 1997)
-- **Spatial Color Correction**: Estimates a per-pixel local illuminant using a vectorized Gaussian neighbourhood mean
+- **MSRCR**: MSR with color restoration for vivid output without desaturation (Jobson et al., 1997)
+- **Spatial Color Correction**: Estimates a per-pixel local illuminant using a vectorized Gaussian neighborhood mean
 - **Combined Pipeline**: Sequential Grey World → Von Kries → MSRCR for comprehensive color improvement
 - **Benchmark Harness**: Evaluate algorithms on standard CSV datasets with angular-error statistics
 - **Named Presets**: `night`, `indoor_tungsten`, `sunset`, `high_contrast`, `vivid`, `subtle` for quick configuration
@@ -213,7 +213,7 @@ err = angular_error(estimated, ground_truth)
 score_psnr = psnr(reference_f, enhanced_f)
 score_ssim = ssim(reference_f, enhanced_f)
 
-# Per-channel statistics and colour cast
+# Per-channel statistics and color cast
 stats = color_statistics(enhanced_f)
 print(stats["red_cast"], stats["mean_r"])
 ```
@@ -251,7 +251,7 @@ Assumes the spatial average of scene reflectances is achromatic. Estimates the i
 
 ### White Patch / Max-RGB
 
-Assumes the brightest surface in the image reflects maximally across all wavelengths. Normalises each channel by its spatial maximum. Unreliable when specular highlights are chromatically coloured.
+Assumes the brightest surface in the image reflects maximally across all wavelengths. Normalizes each channel by its spatial maximum. Unreliable when specular highlights are chromatically colored.
 
 ### Von Kries Adaptation
 
@@ -265,7 +265,7 @@ Based on Land's Retinex theory (Land & McCann, 1971). Computes a log-domain imag
 
 ### Multi-Scale Retinex (MSR)
 
-Averages SSR outputs at three surround scales — typically 15, 80, and 250 — to balance dynamic range compression and tonal rendition (Jobson et al., 1997). By combining a small, medium, and large scale, MSR avoids the single-scale trade-off between local contrast and colour fidelity.
+Averages SSR outputs at three surround scales — typically 15, 80, and 250 — to balance dynamic range compression and tonal rendition (Jobson et al., 1997). By combining a small, medium, and large scale, MSR avoids the single-scale trade-off between local contrast and color fidelity.
 
 ```python
 from color_constancy import MultiScaleRetinex
@@ -276,7 +276,7 @@ msr = MultiScaleRetinex(sigmas=(15.0, 80.0, 250.0), blend_alpha=0.7)
 
 ### MSRCR (Multi-Scale Retinex with Color Restoration)
 
-Extends MSR with a per-channel colour restoration step that compensates for the desaturation MSR can introduce (Jobson et al., 1997). Configurable `cr_gain` and `cr_bias` control colour vividness.
+Extends MSR with a per-channel color restoration step that compensates for the desaturation MSR can introduce (Jobson et al., 1997). Configurable `cr_gain` and `cr_bias` control color vividness.
 
 ```python
 from color_constancy import MSRCR
@@ -289,11 +289,11 @@ The default **combined pipeline** (Grey World → Von Kries → MSRCR) uses MSRC
 
 ### Spatial Color Correction
 
-Estimates a per-pixel local illuminant using `scipy.ndimage.gaussian_filter` — fully vectorised, no Python loops. Each pixel is corrected toward the global mean relative to its local neighbourhood. Corrections are clipped to prevent over-saturation.
+Estimates a per-pixel local illuminant using `scipy.ndimage.gaussian_filter` — fully vectorised, no Python loops. Each pixel is corrected toward the global mean relative to its local neighborhood. Corrections are clipped to prevent over-saturation.
 
 ### Combined Pipeline
 
-Sequentially applies Grey World correction, Von Kries adaptation (gentler parameters), and MSRCR for comprehensive colour correction with vivid, well-balanced output.
+Sequentially applies Grey World correction, Von Kries adaptation (gentler parameters), and MSRCR for comprehensive color correction with vivid, well-balanced output.
 
 ## Running Tests
 
@@ -319,7 +319,7 @@ Foster, D. H. (2011). Color constancy. _Vision Research_, 51(7), 674–700. http
 
 Additional references:
 
-- Buchsbaum, G. (1980). A spatial processor model for object colour perception. _Journal of the Franklin Institute_, 310(1), 1–26.
+- Buchsbaum, G. (1980). A spatial processor model for object color perception. _Journal of the Franklin Institute_, 310(1), 1–26.
 - von Kries, J. (1902). Theoretische Studien über die Umstimmung des Sehorgans. _Festschrift der Albrecht-Ludwigs-Universität_, 143–158.
 - Land, E. H., & McCann, J. J. (1971). Lightness and retinex theory. _Journal of the Optical Society of America_, 61(1), 1–11.
 - Jobson, D. J., Rahman, Z., & Woodell, G. A. (1997). A multiscale retinex for bridging the gap between color images and the human observation of scenes. _IEEE Transactions on Image Processing_, 6(7), 965–976.

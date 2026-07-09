@@ -31,7 +31,7 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
     new MSR/MSRCR variants ``'msr'`` and ``'msrcr'``.
     """
     if method == "combined":
-        # If user suppressed colour restoration, fall back to MSR.
+        # If user suppressed color restoration, fall back to MSR.
         if not params.get("msrcr", True):
             return AlgorithmPipeline(
                 [
@@ -182,7 +182,7 @@ def _load_preset(name_or_path: str) -> dict[str, Any]:
 def create_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser."""
     parser = argparse.ArgumentParser(
-        description="Enhance photo colours using colour constancy principles.",
+        description="Enhance photo colors using color constancy principles.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("input_image", help="Path to the input image.")
@@ -191,7 +191,7 @@ def create_parser() -> argparse.ArgumentParser:
         choices=["gray_world", "white_patch", "von_kries", "retinex",
                  "msr", "msrcr", "spatial", "combined"],
         default="combined",
-        help="Colour constancy algorithm to apply.",
+        help="Color constancy algorithm to apply.",
     )
     parser.add_argument("--output", help="Save the enhanced image to this path.")
     parser.add_argument(
@@ -206,7 +206,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--stats",
         action="store_true",
-        help="Print per-channel colour statistics to stdout.",
+        help="Print per-channel color statistics to stdout.",
     )
     parser.add_argument(
         "--debug",
@@ -241,15 +241,15 @@ def create_parser() -> argparse.ArgumentParser:
     )
     param_group.add_argument(
         "--cr-gain", type=float, metavar="FLOAT",
-        help="MSRCR colour restoration gain (default: 125.0).",
+        help="MSRCR color restoration gain (default: 125.0).",
     )
     param_group.add_argument(
         "--cr-bias", type=float, metavar="FLOAT",
-        help="MSRCR colour restoration bias (default: -46.0).",
+        help="MSRCR color restoration bias (default: -46.0).",
     )
     param_group.add_argument(
         "--msrcr", type=bool, default=True, metavar="BOOL",
-        help="Enable MSRCR colour restoration in combined pipeline (default: true).",
+        help="Enable MSRCR color restoration in combined pipeline (default: true).",
     )
 
     # --- Bridging old-style param key=value ---

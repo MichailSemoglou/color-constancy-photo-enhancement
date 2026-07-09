@@ -6,7 +6,7 @@ import pytest
 
 @pytest.fixture()
 def neutral_image() -> np.ndarray:
-    """Perfectly neutral mid-grey image — colour casts should be preserved at zero."""
+    """Perfectly neutral mid-grey image — color casts should be preserved at zero."""
     return np.full((64, 64, 3), 0.5, dtype=np.float32)
 
 

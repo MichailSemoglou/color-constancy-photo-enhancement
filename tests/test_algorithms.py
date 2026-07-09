@@ -1,7 +1,7 @@
 """Tests for all color constancy algorithm classes.
 
 Covers:
-- Output shape, dtype, and value-range invariants (parametrised over all algorithms).
+- Output shape, dtype, and value-range invariants (parameterized over all algorithms).
 - Algorithm-specific correctness assertions.
 - Pipeline composition.
 - Multi-Scale Retinex (MSR) and MSRCR.
@@ -11,9 +11,9 @@ import numpy as np
 import pytest
 
 from color_constancy.algorithms import (
+    MSRCR,
     AlgorithmPipeline,
     GrayWorldCorrection,
-    MSRCR,
     MultiScaleRetinex,
     RetinexEnhancement,
     SpatialColorCorrection,
@@ -146,7 +146,7 @@ def test_von_kries_illuminant_estimate_shape(random_image):
 
 
 def test_von_kries_neutral_image_preserved(neutral_image):
-    """A neutral grey image has no colour cast; Von Kries should leave it unchanged."""
+    """A neutral grey image has no color cast; Von Kries should leave it unchanged."""
     out = VonKriesAdaptation().process(neutral_image)
     np.testing.assert_allclose(out, neutral_image, atol=1e-5)
 

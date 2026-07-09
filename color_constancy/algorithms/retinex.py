@@ -7,7 +7,7 @@ from .base import ColorConstancyAlgorithm
 
 # Sigma applied before the log transform to suppress shot noise.
 _PRE_SMOOTH_SIGMA: float = 0.5
-# Mild gamma applied after percentile normalisation for tonal balance.
+# Mild gamma applied after percentile normalization for tonal balance.
 _GAMMA: float = 0.9
 # Weight of the surround response subtracted from the log-domain signal.
 _SURROUND_WEIGHT: float = 0.3
@@ -49,10 +49,10 @@ def _percentile_stretch(enhanced: np.ndarray) -> np.ndarray:
 class RetinexEnhancement(ColorConstancyAlgorithm):
     """Single-Scale Retinex (SSR) enhancement.
 
-    Models the centre-surround processing of the human visual system.  For
+    Models the center-surround processing of the human visual system.  For
     each channel, a log-domain image is computed and a Gaussian-smoothed
     surround (an estimate of the slowly-varying illumination) is subtracted.
-    The result enhances local contrast while partially normalising the global
+    The result enhances local contrast while partially normalizing the global
     illumination.
 
     .. note::
@@ -81,7 +81,7 @@ class RetinexEnhancement(ColorConstancyAlgorithm):
     *Journal of the Optical Society of America*, 61(1), 1–11.
 
     Jobson, D. J., Rahman, Z., & Woodell, G. A. (1997). A multiscale retinex
-    for bridging the gap between colour images and the human observation of
+    for bridging the gap between color images and the human observation of
     scenes.  *IEEE Transactions on Image Processing*, 6(7), 965–976.
     """
 
@@ -118,7 +118,7 @@ class MultiScaleRetinex(ColorConstancyAlgorithm):
     Averages SSR outputs at multiple surround scales — typically a small,
     medium, and large sigma — to balance dynamic range compression and tonal
     rendition.  Unlike SSR, which must trade off between local contrast and
-    colour fidelity depending on a single scale, MSR combines the benefits of
+    color fidelity depending on a single scale, MSR combines the benefits of
     all three.
 
     Parameters
@@ -133,7 +133,7 @@ class MultiScaleRetinex(ColorConstancyAlgorithm):
     References
     ----------
     Jobson, D. J., Rahman, Z., & Woodell, G. A. (1997). A multiscale retinex
-    for bridging the gap between colour images and the human observation of
+    for bridging the gap between color images and the human observation of
     scenes.  *IEEE Transactions on Image Processing*, 6(7), 965–976.
     """
 
@@ -171,9 +171,9 @@ class MultiScaleRetinex(ColorConstancyAlgorithm):
 class MSRCR(ColorConstancyAlgorithm):
     """Multi-Scale Retinex with Color Restoration (MSRCR).
 
-    Extends MSR with a per-channel colour restoration step (Jobson et al.,
+    Extends MSR with a per-channel color restoration step (Jobson et al.,
     1997) that compensates for the desaturation MSR/SSR can introduce.  After
-    computing the MSR output, each channel is multiplied by a colour
+    computing the MSR output, each channel is multiplied by a color
     restoration coefficient derived from the log-ratio of the original channel
     to the sum of all channels.
 
@@ -184,16 +184,16 @@ class MSRCR(ColorConstancyAlgorithm):
     blend_alpha:
         Weight of the MSRCR output in the final linear blend.  Default ``0.7``.
     cr_gain:
-        Gain applied to the colour restoration factor.  Higher values produce
-        more vivid colours.  Default ``125.0`` (canonical from Jobson et al.).
+        Gain applied to the color restoration factor.  Higher values produce
+        more vivid colors.  Default ``125.0`` (canonical from Jobson et al.).
     cr_bias:
-        Offset added to the colour-restored MSR before blending.  Default
+        Offset added to the color-restored MSR before blending.  Default
         ``-46.0`` (canonical from Jobson et al.).
 
     References
     ----------
     Jobson, D. J., Rahman, Z., & Woodell, G. A. (1997). A multiscale retinex
-    for bridging the gap between colour images and the human observation of
+    for bridging the gap between color images and the human observation of
     scenes.  *IEEE Transactions on Image Processing*, 6(7), 965–976.
     """
 
@@ -236,7 +236,7 @@ class MSRCR(ColorConstancyAlgorithm):
         cr = self.cr_gain * (np.log(self.cr_gain * image + _LOG_OFFSET) - np.log(img_sum + _LOG_OFFSET))
         cr = np.clip(cr, -self.cr_gain, self.cr_gain)
 
-        # Apply colour restoration: multiply MSR by CR, then add bias
+        # Apply color restoration: multiply MSR by CR, then add bias
         msrcr = msr * cr + self.cr_bias
 
         msrcr = _percentile_stretch(msrcr)

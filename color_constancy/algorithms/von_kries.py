@@ -18,7 +18,7 @@ class VonKriesAdaptation(ColorConstancyAlgorithm):
     The raw adaptation coefficients are clipped to ``clip_range`` and then
     blended toward the identity (1.0) via ``adaptation_strength``, producing a
     partial rather than full chromatic adaptation.  This avoids
-    over-correction on naturally coloured scenes.
+    over-correction on naturally colored scenes.
 
     Parameters
     ----------
@@ -102,7 +102,7 @@ class VonKriesAdaptation(ColorConstancyAlgorithm):
 
         # Normalise to chromaticity (remove brightness) before computing the
         # adaptation ratio.  Without this step, a neutral grey scene produces
-        # coefficients < 1 and dims the image even though no colour cast exists,
+        # coefficients < 1 and dims the image even though no color cast exists,
         # because the raw illuminant mean is compared against the fixed
         # NEUTRAL_ILLUMINANT magnitude (1/3) instead of its chromaticity.
         illuminant_chroma = safe_illuminant / safe_illuminant.sum()

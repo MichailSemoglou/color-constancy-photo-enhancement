@@ -22,8 +22,8 @@ from __future__ import annotations
 import numpy as np
 
 from color_constancy import (
-    GrayWorldCorrection,
     MSRCR,
+    GrayWorldCorrection,
     MultiScaleRetinex,
     RetinexEnhancement,
     SpatialColorCorrection,
