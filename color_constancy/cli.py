@@ -15,6 +15,7 @@ from .algorithms import (
     GrayWorldCorrection,
     MultiScaleRetinex,
     RetinexEnhancement,
+    SelectiveMidtoneEnhancement,
     SpatialColorCorrection,
     VonKriesAdaptation,
     WhitePatchCorrection,
@@ -94,6 +95,15 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
     if method == "spatial":
         return SpatialColorCorrection(
             correction_strength=params.get("correction_strength", 0.2),
+        )
+
+    if method == "sme":
+        return SelectiveMidtoneEnhancement(
+            contrast_strength=params.get("contrast_strength", 1.0),
+            saturation_gain=params.get("saturation_gain", 1.25),
+            shadow_protection=params.get("shadow_protection", 0.10),
+            chroma_threshold=params.get("chroma_threshold", 12.0),
+            cdc_threshold=params.get("cdc_threshold", 0.5),
         )
 
     raise ValueError(f"Unknown method: {method!r}")
@@ -189,7 +199,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--method",
         choices=["gray_world", "white_patch", "von_kries", "retinex",
-                 "msr", "msrcr", "spatial", "combined"],
+                 "msr", "msrcr", "spatial", "sme", "combined"],
         default="combined",
         help="Color constancy algorithm to apply.",
     )
