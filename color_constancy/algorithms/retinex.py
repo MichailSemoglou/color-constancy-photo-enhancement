@@ -193,6 +193,14 @@ class MSRCR(ColorConstancyAlgorithm):
         Sequence of surround sigma values.  Default ``(15.0, 80.0, 250.0)``.
     blend_alpha:
         Weight of the MSRCR output in the final linear blend.  Default ``0.7``.
+    cr_gain:
+        Display gain applied after color restoration.  Default ``192.0``
+        (canonical from Jobson et al.).  Absorbed by the output percentile
+        stretch; see ``cr_beta``.
+    cr_bias:
+        Display offset applied after color restoration.  Default ``-30.0``
+        (canonical from Jobson et al.).  Absorbed by the output percentile
+        stretch; see ``cr_beta``.
     cr_alpha:
         Inner gain of the color restoration factor; the constant that shapes
         the restored colors.  Default ``125.0`` (canonical from Jobson et
@@ -202,14 +210,6 @@ class MSRCR(ColorConstancyAlgorithm):
         (canonical from Jobson et al.).  Retained for fidelity to the
         canonical parameterization; the output percentile stretch absorbs
         it, so positive values leave the result unchanged.
-    cr_gain:
-        Display gain applied after color restoration.  Default ``192.0``
-        (canonical from Jobson et al.).  Absorbed by the output percentile
-        stretch; see ``cr_beta``.
-    cr_bias:
-        Display offset applied after color restoration.  Default ``-30.0``
-        (canonical from Jobson et al.).  Absorbed by the output percentile
-        stretch; see ``cr_beta``.
 
     References
     ----------
@@ -222,17 +222,17 @@ class MSRCR(ColorConstancyAlgorithm):
         self,
         sigmas: tuple[float, ...] = (15.0, 80.0, 250.0),
         blend_alpha: float = 0.7,
-        cr_alpha: float = 125.0,
-        cr_beta: float = 46.0,
         cr_gain: float = 192.0,
         cr_bias: float = -30.0,
+        cr_alpha: float = 125.0,
+        cr_beta: float = 46.0,
     ) -> None:
         self.sigmas = sigmas
         self.blend_alpha = blend_alpha
-        self.cr_alpha = cr_alpha
-        self.cr_beta = cr_beta
         self.cr_gain = cr_gain
         self.cr_bias = cr_bias
+        self.cr_alpha = cr_alpha
+        self.cr_beta = cr_beta
 
     def process(self, image: np.ndarray) -> np.ndarray:
         """Apply MSRCR enhancement.
