@@ -2,7 +2,10 @@
 
 Supports CSV-based datasets with ground-truth illuminants (e.g. Gehler-Shi,
 SFU Gray-Ball, NUS-8).  Reports per-method angular error statistics and
-generates summary tables.
+generates summary tables.  Only algorithms that expose
+``estimate_illuminant()`` are scored: angular error is undefined for
+enhancement methods that estimate no illuminant, so such methods are
+excluded with a warning.
 
 Usage (CLI)::
 
@@ -32,12 +35,8 @@ from pathlib import Path
 import numpy as np
 
 from .algorithms import (
-    MSRCR,
     ColorConstancyAlgorithm,
     GrayWorldCorrection,
-    MultiScaleRetinex,
-    RetinexEnhancement,
-    SpatialColorCorrection,
     VonKriesAdaptation,
     WhitePatchCorrection,
 )
@@ -248,6 +247,7 @@ def run_benchmark(
         algorithms = _default_algorithms()
 
     results = BenchmarkResults(num_images=len(entries))
+    skipped: set[str] = set()
 
     for entry in entries:
         try:
@@ -259,17 +259,19 @@ def run_benchmark(
         img_f = image.astype(np.float32) / 255.0
 
         for name, algo in algorithms.items():
+            if not hasattr(algo, "estimate_illuminant"):
+                # Angular error is defined for illuminant estimators only;
+                # enhancement methods produce no illuminant to score.
+                if name not in skipped:
+                    print(
+                        f"Warning: {name} does not expose estimate_illuminant(); "
+                        "excluded from angular-error scoring.",
+                        file=sys.stderr,
+                    )
+                    skipped.add(name)
+                continue
             try:
-                if hasattr(algo, "estimate_illuminant"):
-                    estimated = algo.estimate_illuminant(img_f)
-                else:
-                    # For pipeline/retinex methods, estimate from the processed output.
-                    processed = algo.process(img_f)
-                    estimated = processed.mean(axis=(0, 1)).astype(np.float32)
-                    total = estimated.sum()
-                    if total > 0:
-                        estimated = estimated / total
-
+                estimated = algo.estimate_illuminant(img_f)
                 error = angular_error(estimated.astype(np.float64), entry.illuminant.astype(np.float64))
                 results.add_result(name, entry.image_path.name, error, estimated)
             except Exception as exc:  # noqa: BLE001
@@ -279,15 +281,11 @@ def run_benchmark(
 
 
 def _default_algorithms() -> dict[str, ColorConstancyAlgorithm]:
-    """Return the default suite of built-in algorithms for benchmarking."""
+    """Return the default suite of built-in illuminant estimators."""
     return {
         "GrayWorld": GrayWorldCorrection(),
         "WhitePatch": WhitePatchCorrection(),
         "VonKries": VonKriesAdaptation(),
-        "Retinex(SSR)": RetinexEnhancement(),
-        "MSR": MultiScaleRetinex(),
-        "MSRCR": MSRCR(),
-        "Spatial": SpatialColorCorrection(),
     }
 
 

@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import pytest
 
-from color_constancy.cli import create_parser, main
+from color_constancy.cli import _build_algorithm, _collect_params, create_parser, main
 
 
 def _make_png(path: Path, value: int = 128, size: int = 64) -> None:
@@ -107,3 +107,63 @@ def test_main_no_show_flag_skips_display(tmp_path):
         with patch("color_constancy.visualization.plt.show") as mock_show:
             main()
     mock_show.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# SME parameter forwarding (regression tests)
+# ---------------------------------------------------------------------------
+
+
+def test_build_algorithm_sme_forwards_all_params():
+    """Every SME constructor parameter must reach the instance."""
+    algo = _build_algorithm(
+        "sme",
+        {
+            "auto": False,
+            "contrast_strength": 1.2,
+            "saturation_gain": 1.4,
+            "shadow_protection": 0.05,
+            "highlight_protection": 0.2,
+            "chroma_threshold": 10.0,
+            "cdc_threshold": 0.6,
+        },
+    )
+    assert algo.auto is False
+    assert algo.contrast_strength == 1.2
+    assert algo.saturation_gain == 1.4
+    assert algo.shadow_protection == 0.05
+    assert algo.highlight_protection == 0.2
+    assert algo.chroma_threshold == 10.0
+    assert algo.cdc_threshold == 0.6
+
+
+def test_main_sme_manual_params_not_noop(tmp_path):
+    """Manual SME parameters via --param must change the output."""
+    src = tmp_path / "src.png"
+    gradient = np.linspace(0, 255, 64, dtype=np.uint8)
+    img = np.tile(gradient, (64, 1))[:, :, None].repeat(3, axis=2)
+    cv2.imwrite(str(src), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    out_weak = tmp_path / "weak.png"
+    out_strong = tmp_path / "strong.png"
+
+    with patch("sys.argv", ["prog", str(src), "--method", "sme",
+                            "--param", "auto=false,contrast_strength=0.0",
+                            "--output", str(out_weak)]):
+        main()
+    with patch("sys.argv", ["prog", str(src), "--method", "sme",
+                            "--param", "auto=false,contrast_strength=2.0",
+                            "--output", str(out_strong)]):
+        main()
+
+    weak = cv2.imread(str(out_weak))
+    strong = cv2.imread(str(out_strong))
+    assert not np.array_equal(weak, strong)
+
+
+def test_repeated_param_flags_merge():
+    """Repeated --param flags must accumulate, not overwrite."""
+    args = create_parser().parse_args(
+        ["img.jpg", "--param", "contrast_strength=1.2", "--param", "saturation_gain=1.4"]
+    )
+    params = _collect_params(args)
+    assert params == {"contrast_strength": 1.2, "saturation_gain": 1.4}

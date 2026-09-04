@@ -37,7 +37,6 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
             return AlgorithmPipeline(
                 [
                     GrayWorldCorrection(),
-                    VonKriesAdaptation(adaptation_strength=0.5, clip_range=(0.7, 1.4)),
                     MultiScaleRetinex(
                         sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
                         blend_alpha=params.get("blend_alpha", 0.7),
@@ -48,12 +47,13 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
         return AlgorithmPipeline(
             [
                 GrayWorldCorrection(),
-                VonKriesAdaptation(adaptation_strength=0.5, clip_range=(0.7, 1.4)),
                 MSRCR(
                     sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
                     blend_alpha=params.get("blend_alpha", 0.7),
-                    cr_gain=params.get("cr_gain", 125.0),
-                    cr_bias=params.get("cr_bias", -46.0),
+                    cr_alpha=params.get("cr_alpha", 125.0),
+                    cr_beta=params.get("cr_beta", 46.0),
+                    cr_gain=params.get("cr_gain", 192.0),
+                    cr_bias=params.get("cr_bias", -30.0),
                 ),
             ],
             _repr_name="Combined (MSRCR)",
@@ -88,8 +88,10 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
         return MSRCR(
             sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
             blend_alpha=params.get("blend_alpha", 0.7),
-            cr_gain=params.get("cr_gain", 125.0),
-            cr_bias=params.get("cr_bias", -46.0),
+            cr_alpha=params.get("cr_alpha", 125.0),
+            cr_beta=params.get("cr_beta", 46.0),
+            cr_gain=params.get("cr_gain", 192.0),
+            cr_bias=params.get("cr_bias", -30.0),
         )
 
     if method == "spatial":
@@ -99,9 +101,11 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
 
     if method == "sme":
         return SelectiveMidtoneEnhancement(
+            auto=params.get("auto", True),
             contrast_strength=params.get("contrast_strength", 1.0),
             saturation_gain=params.get("saturation_gain", 1.25),
             shadow_protection=params.get("shadow_protection", 0.10),
+            highlight_protection=params.get("highlight_protection", 0.10),
             chroma_threshold=params.get("chroma_threshold", 12.0),
             cdc_threshold=params.get("cdc_threshold", 0.5),
         )
@@ -114,11 +118,8 @@ _PRESETS: dict[str, dict[str, Any]] = {
     "default": {"method": "combined"},
     "night": {
         "method": "combined",
-        "adaptation_strength": 0.4,
-        "clip_range": (0.5, 2.0),
         "blend_alpha": 0.8,
-        "cr_gain": 150.0,
-        "cr_bias": -50.0,
+        "cr_alpha": 150.0,
     },
     "indoor_tungsten": {
         "method": "von_kries",
@@ -128,10 +129,8 @@ _PRESETS: dict[str, dict[str, Any]] = {
     },
     "sunset": {
         "method": "combined",
-        "adaptation_strength": 0.3,
         "blend_alpha": 0.5,
-        "cr_gain": 80.0,
-        "cr_bias": -30.0,
+        "cr_alpha": 80.0,
     },
     "high_contrast": {
         "method": "msr",
@@ -142,8 +141,7 @@ _PRESETS: dict[str, dict[str, Any]] = {
         "method": "msrcr",
         "sigmas": (15.0, 80.0, 250.0),
         "blend_alpha": 0.6,
-        "cr_gain": 200.0,
-        "cr_bias": -60.0,
+        "cr_alpha": 200.0,
     },
     "subtle": {
         "method": "spatial",
@@ -251,11 +249,21 @@ def create_parser() -> argparse.ArgumentParser:
     )
     param_group.add_argument(
         "--cr-gain", type=float, metavar="FLOAT",
-        help="MSRCR color restoration gain (default: 125.0).",
+        help="MSRCR display gain after color restoration (default: 192.0).",
     )
     param_group.add_argument(
         "--cr-bias", type=float, metavar="FLOAT",
-        help="MSRCR color restoration bias (default: -46.0).",
+        help="MSRCR display offset after color restoration (default: -30.0).",
+    )
+    param_group.add_argument(
+        "--cr-alpha", type=float, metavar="FLOAT",
+        help="MSRCR color restoration inner gain alpha; shapes the restored "
+             "colors (default: 125.0).",
+    )
+    param_group.add_argument(
+        "--cr-beta", type=float, metavar="FLOAT",
+        help="MSRCR color restoration outer gain beta (default: 46.0); "
+             "absorbed by output normalization.",
     )
     param_group.add_argument(
         "--msrcr", type=bool, default=True, metavar="BOOL",
@@ -264,8 +272,9 @@ def create_parser() -> argparse.ArgumentParser:
 
     # --- Bridging old-style param key=value ---
     param_group.add_argument(
-        "--param", type=str, metavar="k=v,...",
-        help="Additional algorithm parameters as comma-separated key=value pairs.",
+        "--param", type=str, action="append", metavar="k=v,...",
+        help="Additional algorithm parameters as comma-separated key=value "
+             "pairs. May be repeated.",
     )
 
     # --- Presets ---
@@ -301,8 +310,13 @@ def _collect_params(args: argparse.Namespace) -> dict[str, Any]:
         params["cr_gain"] = args.cr_gain
     if args.cr_bias is not None:
         params["cr_bias"] = args.cr_bias
-    if args.param is not None:
-        params.update(_parse_key_value(args.param))
+    if args.cr_alpha is not None:
+        params["cr_alpha"] = args.cr_alpha
+    if args.cr_beta is not None:
+        params["cr_beta"] = args.cr_beta
+    if args.param:
+        for raw in args.param:
+            params.update(_parse_key_value(raw))
 
     return params
 

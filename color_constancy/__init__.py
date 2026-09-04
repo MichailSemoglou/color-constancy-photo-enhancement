@@ -14,6 +14,8 @@ For the original single-class API (backward-compatible) see
 ``color_constancy_enhancer.ColorConstancyEnhancer``.
 """
 
+from importlib.metadata import PackageNotFoundError, version
+
 from .algorithms import (
     MSRCR,
     AlgorithmPipeline,
@@ -30,7 +32,10 @@ from .io import load_image, save_image
 from .metrics import angular_error, color_statistics, psnr, ssim
 from .visualization import display_comparison, visualize_illuminant
 
-__version__ = "1.3.0"
+try:
+    __version__ = version("color-constancy-enhancement")
+except PackageNotFoundError:  # source tree used without installation
+    __version__ = "unknown"
 
 __all__ = [
     # algorithms

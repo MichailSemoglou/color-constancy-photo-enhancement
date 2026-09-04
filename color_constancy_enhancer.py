@@ -74,7 +74,8 @@ class ColorConstancyEnhancer:
             Path to the source image.
         method:
             One of ``'gray_world'``, ``'white_patch'``, ``'von_kries'``,
-            ``'retinex'``, ``'spatial'``, ``'combined'``.
+            ``'retinex'``, ``'msr'``, ``'msrcr'``, ``'spatial'``,
+            ``'sme'``, ``'combined'``.
         output_path:
             If provided, save the enhanced image to this path.
 
