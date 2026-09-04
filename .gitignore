@@ -240,3 +240,15 @@ __marimo__/
 
 # Papers
 papers/
+
+# Kimi
+.kimi/instructions.md
+
+# Local files
+20260904_REVIEW.md
+AGENTS.md
+ROADMAP.md
+.githooks/
+
+# macOS
+.DS_Store
