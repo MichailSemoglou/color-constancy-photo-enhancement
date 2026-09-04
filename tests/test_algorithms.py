@@ -21,6 +21,7 @@ from color_constancy.algorithms import (
     WhitePatchCorrection,
     build_combined_pipeline,
 )
+from color_constancy.algorithms.retinex import _color_restoration
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -263,12 +264,39 @@ def test_msrcr_output_in_unit_range(random_image):
     assert np.isfinite(out).all()
 
 
-def test_msrcr_different_gains_produce_different_output(random_image):
-    vivid = MSRCR(cr_gain=200.0, cr_bias=-60.0)
-    muted = MSRCR(cr_gain=50.0, cr_bias=-20.0)
+def test_msrcr_different_alpha_produces_different_output(random_image):
+    vivid = MSRCR(cr_alpha=200.0)
+    muted = MSRCR(cr_alpha=80.0)
     out_vivid = vivid.process(random_image)
     out_muted = muted.process(random_image)
     assert not np.allclose(out_vivid, out_muted, atol=0.005)
+
+
+def test_msrcr_outer_constants_absorbed_by_stretch(random_image):
+    """The percentile stretch renormalizes the output: for positive values the
+    canonical outer constants (beta, G, b) act before a self-normalizing map
+    and leave the result unchanged."""
+    reference = MSRCR().process(random_image)
+    scaled = MSRCR(cr_beta=74.0, cr_gain=96.0, cr_bias=0.0).process(random_image)
+    np.testing.assert_allclose(reference, scaled, atol=1e-4)
+
+
+def test_msrcr_color_restoration_not_degenerate(random_image):
+    """The color restoration factor must vary per pixel, not pin at a constant.
+
+    Regression test: before 1.3.1 the gain constant served in both the alpha
+    and beta roles and the factor was clipped to +-gain, which pinned 99.98%
+    of entries at the clip value on a representative image.
+    """
+    cr = _color_restoration(random_image, alpha=125.0, beta=46.0)
+    assert float(cr.std()) > 5.0
+
+
+def test_msrcr_color_restoration_chromatic_ordering(red_cast_image):
+    """The dominant channel must receive the largest restoration factor."""
+    cr = _color_restoration(red_cast_image, alpha=125.0, beta=46.0)
+    assert float(cr[..., 0].mean()) > float(cr[..., 1].mean())
+    assert float(cr[..., 0].mean()) > float(cr[..., 2].mean())
 
 
 def test_combined_pipeline_uses_msrcr(random_image):

@@ -46,6 +46,16 @@ def _percentile_stretch(enhanced: np.ndarray) -> np.ndarray:
     return np.power(np.clip(enhanced, 0.0, 1.0), _GAMMA)
 
 
+def _color_restoration(image: np.ndarray, alpha: float, beta: float) -> np.ndarray:
+    """Canonical color restoration factor of Jobson et al. (1997).
+
+    Computes ``beta * (log(alpha * I_c) - log(sum_j I_j))`` per channel:
+    a continuous per-pixel chromatic weighting of the MSR output.
+    """
+    img_sum = image.sum(axis=2, keepdims=True) + 1e-6
+    return beta * (np.log(alpha * image + _LOG_OFFSET) - np.log(img_sum + _LOG_OFFSET))
+
+
 class RetinexEnhancement(ColorConstancyAlgorithm):
     """Single-Scale Retinex (SSR) enhancement.
 
@@ -183,12 +193,23 @@ class MSRCR(ColorConstancyAlgorithm):
         Sequence of surround sigma values.  Default ``(15.0, 80.0, 250.0)``.
     blend_alpha:
         Weight of the MSRCR output in the final linear blend.  Default ``0.7``.
+    cr_alpha:
+        Inner gain of the color restoration factor; the constant that shapes
+        the restored colors.  Default ``125.0`` (canonical from Jobson et
+        al.).
+    cr_beta:
+        Outer gain of the color restoration factor.  Default ``46.0``
+        (canonical from Jobson et al.).  Retained for fidelity to the
+        canonical parameterization; the output percentile stretch absorbs
+        it, so positive values leave the result unchanged.
     cr_gain:
-        Gain applied to the color restoration factor.  Higher values produce
-        more vivid colors.  Default ``125.0`` (canonical from Jobson et al.).
+        Display gain applied after color restoration.  Default ``192.0``
+        (canonical from Jobson et al.).  Absorbed by the output percentile
+        stretch; see ``cr_beta``.
     cr_bias:
-        Offset added to the color-restored MSR before blending.  Default
-        ``-46.0`` (canonical from Jobson et al.).
+        Display offset applied after color restoration.  Default ``-30.0``
+        (canonical from Jobson et al.).  Absorbed by the output percentile
+        stretch; see ``cr_beta``.
 
     References
     ----------
@@ -201,11 +222,15 @@ class MSRCR(ColorConstancyAlgorithm):
         self,
         sigmas: tuple[float, ...] = (15.0, 80.0, 250.0),
         blend_alpha: float = 0.7,
-        cr_gain: float = 125.0,
-        cr_bias: float = -46.0,
+        cr_alpha: float = 125.0,
+        cr_beta: float = 46.0,
+        cr_gain: float = 192.0,
+        cr_bias: float = -30.0,
     ) -> None:
         self.sigmas = sigmas
         self.blend_alpha = blend_alpha
+        self.cr_alpha = cr_alpha
+        self.cr_beta = cr_beta
         self.cr_gain = cr_gain
         self.cr_bias = cr_bias
 
@@ -229,15 +254,11 @@ class MSRCR(ColorConstancyAlgorithm):
         msr = accumulated / len(self.sigmas)
 
         # --- Color restoration ---
-        # CR_c = beta * (log(alpha * I_c) - log(sum_j(I_j)))
-        # where beta * (...) produces a per-channel weighting.
-        # We absorb beta into cr_gain for simplicity.
-        img_sum = image.sum(axis=2, keepdims=True) + 1e-6
-        cr = self.cr_gain * (np.log(self.cr_gain * image + _LOG_OFFSET) - np.log(img_sum + _LOG_OFFSET))
-        cr = np.clip(cr, -self.cr_gain, self.cr_gain)
+        cr = _color_restoration(image, self.cr_alpha, self.cr_beta)
 
-        # Apply color restoration: multiply MSR by CR, then add bias
-        msrcr = msr * cr + self.cr_bias
+        # Multiply MSR by the restoration factor, then apply the display
+        # gain/offset (G and b of Jobson et al., 1997).
+        msrcr = self.cr_gain * (msr * cr) + self.cr_bias
 
         msrcr = _percentile_stretch(msrcr)
         result = self.blend_alpha * msrcr + (1.0 - self.blend_alpha) * image
