@@ -5,7 +5,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/color-constancy-enhancement?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=BLUE&left_text=downloads)](https://pepy.tech/projects/color-constancy-enhancement)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/color-constancy-enhancement)](https://pypi.org/project/color-constancy-enhancement/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21278448.svg)](https://doi.org/10.5281/zenodo.21278448)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21278447.svg)](https://doi.org/10.5281/zenodo.21278447)
 
 A Python implementation of color constancy algorithms for photo enhancement, featuring both classical methods (Foster, 2011) and the novel **Selective Midtone Enhancement (SME)** — a perceptually-guided adaptive enhancer (Semoglou, 2026).
 
