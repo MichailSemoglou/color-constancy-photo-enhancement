@@ -11,7 +11,7 @@ A Python implementation of color constancy algorithms for photo enhancement, fea
 
 ## Features
 
-Ten color constancy algorithms, a composable pipeline API, quantitative evaluation metrics, a full CLI, presets for common scenarios, and a benchmark harness for datasets:
+Eight color constancy and enhancement algorithms, a composable pipeline API, quantitative evaluation metrics, a full CLI, presets for common scenarios, and a benchmark harness for datasets:
 
 - **Selective Midtone Enhancement (SME)**: Novel auto-adaptive algorithm with dynamic S-curve contrast, conditional saturation via Color Definition Confidence (CDC), and asymptotic highlight preservation
 - **Gray World Assumption**: Corrects color cast by assuming the spatial average of scene reflectances is neutral
@@ -21,8 +21,8 @@ Ten color constancy algorithms, a composable pipeline API, quantitative evaluati
 - **Multi-Scale Retinex (MSR)**: Averages SSR at three scales (15, 80, 250) for balanced dynamic range (Jobson et al., 1997)
 - **MSRCR**: MSR with color restoration for vivid output without desaturation (Jobson et al., 1997)
 - **Spatial Color Correction**: Estimates a per-pixel local illuminant using a vectorized Gaussian neighborhood mean
-- **Combined Pipeline**: Sequential Grey World → Von Kries → MSRCR for comprehensive color improvement
-- **Benchmark Harness**: Evaluate algorithms on standard CSV datasets with angular-error statistics
+- **Combined Pipeline**: Sequential Gray World → MSRCR for combined cast removal and local contrast enhancement
+- **Benchmark Harness**: Evaluate illuminant estimators on standard CSV datasets with angular-error statistics
 - **Named Presets**: `night`, `indoor_tungsten`, `sunset`, `high_contrast`, `vivid`, `subtle` for quick configuration
 
 ## Installation
@@ -59,7 +59,7 @@ pip install -e ".[dev]"
 ### CLI
 
 ```bash
-# Combined pipeline (default) — Grey World → Von Kries → MSRCR
+# Combined pipeline (default): Gray World -> MSRCR
 color-constancy-enhance input.jpg --output enhanced.jpg
 
 # Single-Scale Retinex
@@ -74,8 +74,8 @@ color-constancy-enhance input.jpg --method msr --sigmas 10,60,200 --output msr.j
 
 # MSRCR (Multi-Scale Retinex with Color Restoration)
 color-constancy-enhance input.jpg --method msrcr --output msrcr.jpg
-# Vivid MSRCR
-color-constancy-enhance input.jpg --method msrcr --cr-gain 200 --cr-bias -60 --output vivid.jpg
+# Stronger color restoration
+color-constancy-enhance input.jpg --method msrcr --cr-alpha 200 --output vivid.jpg
 
 # Other single algorithms
 color-constancy-enhance input.jpg --method gray_world --output gray_world.jpg
@@ -98,8 +98,8 @@ color-constancy-enhance input.jpg --comparison before_after.jpg --show
 
 # Selective Midtone Enhancement (SME) — auto-adaptive mode
 color-constancy-enhance input.jpg --method sme --output sme.jpg
-# Manual parameter control
-color-constancy-enhance input.jpg --method sme --param contrast_strength=1.2 --param saturation_gain=1.4 --output sme_custom.jpg
+# Manual parameter control (requires auto=false)
+color-constancy-enhance input.jpg --method sme --param auto=false,contrast_strength=1.2,saturation_gain=1.4 --output sme_custom.jpg
 
 # Channel statistics
 color-constancy-enhance input.jpg --stats
@@ -186,7 +186,7 @@ pipeline_msr = AlgorithmPipeline([
 # MSRCR pipeline (what build_combined_pipeline() returns)
 pipeline_msrcr = AlgorithmPipeline([
     GrayWorldCorrection(),
-    MSRCR(sigmas=(15.0, 80.0, 250.0), blend_alpha=0.7, cr_gain=125.0, cr_bias=-46.0),
+    MSRCR(sigmas=(15.0, 80.0, 250.0), blend_alpha=0.7),
 ])
 ```
 
@@ -227,23 +227,23 @@ print(stats["red_cast"], stats["mean_r"])
 
 ## Benchmark API
 
-The `color_constancy.benchmark` module provides a dataset evaluation harness:
+The `color_constancy.benchmark` module provides a dataset evaluation harness for illuminant estimators. Only algorithms that expose `estimate_illuminant()` are scored; enhancement methods such as MSR and MSRCR estimate no illuminant and are excluded from angular-error tables.
 
 ```python
 from color_constancy.benchmark import load_dataset, run_benchmark
-from color_constancy.algorithms import GrayWorldCorrection, MSRCR
+from color_constancy.algorithms import GrayWorldCorrection, VonKriesAdaptation
 
 entries = load_dataset("dataset.csv", image_dir="./images")
 results = run_benchmark(entries, algorithms={
     "GrayWorld": GrayWorldCorrection(),
-    "MSRCR": MSRCR(),
+    "VonKries": VonKriesAdaptation(),
 })
 
 print(results.summary_table())
 #  Algorithm               Mean   Median  Trimean  Best25   Worst5    N
 #  ---------------------------------------------------------------------
 #  GrayWorld              4.32     3.87     3.91    1.23    12.45    568
-#  MSRCR                  5.10     4.45     4.58    1.58    14.23    568
+#  VonKries               4.10     3.65     3.72    1.15    11.87    568
 
 # Export as Markdown or CSV
 print(results.to_markdown())
@@ -283,16 +283,16 @@ msr = MultiScaleRetinex(sigmas=(15.0, 80.0, 250.0), blend_alpha=0.7)
 
 ### MSRCR (Multi-Scale Retinex with Color Restoration)
 
-Extends MSR with a per-channel color restoration step that compensates for the desaturation MSR can introduce (Jobson et al., 1997). Configurable `cr_gain` and `cr_bias` control color vividness.
+Extends MSR with a per-channel color restoration step that compensates for the desaturation MSR can introduce (Jobson et al., 1997). The `cr_alpha` parameter shapes the restored colors; the canonical outer constants (`cr_beta`, `cr_gain`, `cr_bias`) are retained but absorbed by the output percentile normalization.
 
 ```python
 from color_constancy import MSRCR
 
-msrcr = MSRCR(sigmas=(15.0, 80.0, 250.0), blend_alpha=0.7, cr_gain=125.0, cr_bias=-46.0)
-# Or via CLI: color-constancy-enhance input.jpg --method msrcr --cr-gain 200
+msrcr = MSRCR(sigmas=(15.0, 80.0, 250.0), blend_alpha=0.7, cr_alpha=125.0)
+# Or via CLI: color-constancy-enhance input.jpg --method msrcr --cr-alpha 200
 ```
 
-The default **combined pipeline** (Grey World → Von Kries → MSRCR) uses MSRCR internally.
+The default **combined pipeline** (Gray World → MSRCR) uses MSRCR internally.
 
 ### Spatial Color Correction
 
@@ -300,7 +300,7 @@ Estimates a per-pixel local illuminant using `scipy.ndimage.gaussian_filter` —
 
 ### Combined Pipeline
 
-Sequentially applies Grey World correction, Von Kries adaptation (gentler parameters), and MSRCR for comprehensive color correction with vivid, well-balanced output.
+Sequentially applies Gray World correction and MSRCR: the first stage removes the gross global cast, the second enhances local contrast while preserving color fidelity.
 
 ### Selective Midtone Enhancement (SME)
 
@@ -358,8 +358,8 @@ sme = SelectiveMidtoneEnhancement(
 
 ```bash
 pytest tests/ -v
-# With coverage:
-pytest tests/ --cov=color_constancy --cov-report=term-missing
+# With coverage (same scope as CI):
+pytest tests/ --cov=color_constancy --cov=color_constancy_enhancer --cov-report=term-missing
 ```
 
 ## Requirements
