@@ -6,7 +6,13 @@ unless otherwise stated.
 
 
 import numpy as np
-from scipy.ndimage import uniform_filter
+from scipy.ndimage import gaussian_filter
+
+# Window for SSIM local statistics: 11-sample Gaussian with sigma = 1.5,
+# as specified by Wang et al. (2004).  ``truncate`` sets the support to
+# 2 * 5 + 1 = 11 samples.
+_SSIM_WINDOW_SIGMA: float = 1.5
+_SSIM_WINDOW_TRUNCATE: float = 5.0 / _SSIM_WINDOW_SIGMA
 
 
 def angular_error(estimated: np.ndarray, ground_truth: np.ndarray) -> float:
@@ -86,8 +92,8 @@ def ssim(reference: np.ndarray, distorted: np.ndarray) -> float:
     """Structural Similarity Index Measure (SSIM).
 
     Implements the luminance + contrast + structure formulation from Wang et
-    al. (2004).  Computed per channel with an 11-pixel uniform filter and
-    averaged across the three channels.
+    al. (2004).  Computed per channel with an 11-sample Gaussian window
+    (sigma = 1.5) and averaged across the three channels.
 
     Parameters
     ----------
@@ -116,15 +122,15 @@ def ssim(reference: np.ndarray, distorted: np.ndarray) -> float:
         r = reference[:, :, c].astype(np.float64)
         d = distorted[:, :, c].astype(np.float64)
 
-        mu_r = uniform_filter(r, size=11)
-        mu_d = uniform_filter(d, size=11)
+        mu_r = gaussian_filter(r, sigma=_SSIM_WINDOW_SIGMA, truncate=_SSIM_WINDOW_TRUNCATE)
+        mu_d = gaussian_filter(d, sigma=_SSIM_WINDOW_SIGMA, truncate=_SSIM_WINDOW_TRUNCATE)
         mu_r2 = mu_r**2
         mu_d2 = mu_d**2
         mu_rd = mu_r * mu_d
 
-        sigma_r2 = uniform_filter(r * r, size=11) - mu_r2
-        sigma_d2 = uniform_filter(d * d, size=11) - mu_d2
-        sigma_rd = uniform_filter(r * d, size=11) - mu_rd
+        sigma_r2 = gaussian_filter(r * r, sigma=_SSIM_WINDOW_SIGMA, truncate=_SSIM_WINDOW_TRUNCATE) - mu_r2
+        sigma_d2 = gaussian_filter(d * d, sigma=_SSIM_WINDOW_SIGMA, truncate=_SSIM_WINDOW_TRUNCATE) - mu_d2
+        sigma_rd = gaussian_filter(r * d, sigma=_SSIM_WINDOW_SIGMA, truncate=_SSIM_WINDOW_TRUNCATE) - mu_rd
 
         numerator = (2.0 * mu_rd + C1) * (2.0 * sigma_rd + C2)
         denominator = (mu_r2 + mu_d2 + C1) * (sigma_r2 + sigma_d2 + C2)
