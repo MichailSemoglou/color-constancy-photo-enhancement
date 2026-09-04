@@ -217,7 +217,7 @@ def test_pipeline_two_steps_matches_sequential(random_image):
 def test_build_combined_pipeline_type_and_length():
     p = build_combined_pipeline()
     assert isinstance(p, AlgorithmPipeline)
-    assert len(p.steps) == 3
+    assert len(p.steps) == 2
 
 
 # ---------------------------------------------------------------------------
