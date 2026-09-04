@@ -1,6 +1,7 @@
 """Tests for the benchmark harness."""
 
 import csv
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -9,6 +10,7 @@ from color_constancy.algorithms import GrayWorldCorrection, WhitePatchCorrection
 from color_constancy.benchmark import (
     BenchmarkReport,
     load_dataset,
+    main,
     run_benchmark,
 )
 from color_constancy.io import save_image
@@ -99,12 +101,55 @@ def test_benchmark_results_to_csv(tmp_dataset):
     assert "algorithm,image,angular_error" in csv_out
 
 
-def test_run_benchmark_with_pipeline_algorithms(tmp_dataset):
-    """Algorithms without estimate_illuminant should fall back to output mean."""
+def test_run_benchmark_skips_non_estimators(tmp_dataset, capsys):
+    """Algorithms without estimate_illuminant are excluded from angular-error scoring."""
     from color_constancy.algorithms import MultiScaleRetinex
     csv_path, img_dir = tmp_dataset
     entries = load_dataset(str(csv_path), image_dir=str(img_dir))
     results = run_benchmark(entries, algorithms={"MSR": MultiScaleRetinex()})
-    assert "MSR" in results.reports
-    assert len(results.reports["MSR"].errors) == 2
-    assert all(np.isfinite(e) for e in results.reports["MSR"].errors)
+    assert "MSR" not in results.reports
+    assert "estimate_illuminant" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# CLI main()
+# ---------------------------------------------------------------------------
+
+
+def test_benchmark_main_writes_markdown_output(tmp_dataset, tmp_path):
+    csv_path, img_dir = tmp_dataset
+    out = tmp_path / "results.md"
+    with patch("sys.argv", ["prog", str(csv_path), "--image-dir", str(img_dir),
+                            "--format", "markdown", "--output", str(out)]):
+        main()
+    text = out.read_text()
+    assert "| Algorithm |" in text
+    assert "GrayWorld" in text
+
+
+def test_benchmark_main_method_subset(tmp_dataset, capsys):
+    csv_path, img_dir = tmp_dataset
+    with patch("sys.argv", ["prog", str(csv_path), "--image-dir", str(img_dir),
+                            "--method", "GrayWorld"]):
+        main()
+    out = capsys.readouterr().out
+    assert "GrayWorld" in out
+    assert "WhitePatch" not in out
+
+
+def test_benchmark_main_rejects_bad_illuminant_cols(tmp_dataset):
+    csv_path, img_dir = tmp_dataset
+    with patch("sys.argv", ["prog", str(csv_path), "--image-dir", str(img_dir),
+                            "--illuminant-cols", "r,g"]):
+        with pytest.raises(SystemExit) as exc:
+            main()
+    assert exc.value.code == 1
+
+
+def test_benchmark_main_rejects_unknown_method_subset(tmp_dataset):
+    csv_path, img_dir = tmp_dataset
+    with patch("sys.argv", ["prog", str(csv_path), "--image-dir", str(img_dir),
+                            "--method", "NoSuchAlgorithm"]):
+        with pytest.raises(SystemExit) as exc:
+            main()
+    assert exc.value.code == 1
