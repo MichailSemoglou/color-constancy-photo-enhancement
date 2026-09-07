@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import io
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -115,6 +116,20 @@ class BenchmarkReport:
         return float(np.mean(best)) if best else float("nan")
 
 
+_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: str) -> str:
+    """Prefix a leading spreadsheet-formula metacharacter with an apostrophe.
+
+    Guards against CSV injection when dataset-controlled strings (algorithm
+    names, image filenames) are opened in a spreadsheet application.
+    """
+    if value[:1] in _FORMULA_PREFIXES:
+        return "'" + value
+    return value
+
+
 @dataclass
 class BenchmarkResults:
     """Collection of BenchmarkReport objects keyed by algorithm name."""
@@ -157,12 +172,21 @@ class BenchmarkResults:
         return "\n".join(lines)
 
     def to_csv(self) -> str:
-        """Return results as CSV with per-image per-algorithm rows."""
-        rows = ["algorithm,image,angular_error"]
+        """Return results as CSV with per-image per-algorithm rows.
+
+        Text fields beginning with a spreadsheet formula metacharacter are
+        prefixed with an apostrophe, so dataset-controlled strings (image
+        filenames) open as inert text in spreadsheet applications.
+        """
+        buf = io.StringIO()
+        writer = csv.writer(buf, lineterminator="\n")
+        writer.writerow(["algorithm", "image", "angular_error"])
         for name in sorted(self.reports):
             for r in self.reports[name].results:
-                rows.append(f"{name},{r.image_name},{r.angular_error:.4f}")
-        return "\n".join(rows)
+                writer.writerow(
+                    [_csv_safe(name), _csv_safe(r.image_name), f"{r.angular_error:.4f}"]
+                )
+        return buf.getvalue().rstrip("\n")
 
 
 def load_dataset(

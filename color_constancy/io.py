@@ -5,6 +5,10 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+# Upper bound on decoded image size (decompression-bomb guard).  A 100 MP
+# image occupies about 1.2 GB as float32 RGB during processing.
+MAX_IMAGE_PIXELS: int = 100_000_000
+
 
 def _validate_image(image: np.ndarray) -> None:
     """Raise ``ValueError`` for images that are too small or wrong shape.
@@ -52,7 +56,8 @@ def load_image(image_path: str) -> np.ndarray:
     FileNotFoundError
         If *image_path* does not exist on disk.
     ValueError
-        If OpenCV cannot decode the file, or if the image is too small.
+        If OpenCV cannot decode the file, if the decoded image exceeds
+        ``MAX_IMAGE_PIXELS`` pixels, or if the image is too small.
     """
     path = Path(image_path)
     if not path.exists():
@@ -63,6 +68,13 @@ def load_image(image_path: str) -> np.ndarray:
         raise ValueError(
             f"Could not decode image: {path}. "
             "Ensure the file is a valid, non-corrupted image."
+        )
+
+    height, width = raw.shape[:2]
+    if height * width > MAX_IMAGE_PIXELS:
+        raise ValueError(
+            f"Image {path} has {height * width:_} pixels, exceeding the "
+            f"maximum of {MAX_IMAGE_PIXELS:_} (decompression-bomb guard)."
         )
 
     rgb = cv2.cvtColor(raw, cv2.COLOR_BGR2RGB)
