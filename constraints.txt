@@ -3,7 +3,10 @@
 #
 # Generated 2026-09-07 from the project virtualenv (CPython 3.13); every wheel
 # and sdist hash published on PyPI for each pinned version is listed, so the
-# file works on any platform pip supports.
+# file works on any platform pip supports. The pins target CPython 3.13:
+# numpy 2.5 and scipy 1.18 require Python >= 3.12, and matplotlib 3.11
+# requires >= 3.11. On older supported interpreters install from
+# requirements.txt instead, or regenerate this file per interpreter.
 #
 # Usage (hash-verified, reproducible install):
 #   pip install --require-hashes -r constraints.txt
