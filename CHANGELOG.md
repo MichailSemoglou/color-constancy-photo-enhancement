@@ -23,13 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - The `--msrcr` flag now works as a proper boolean pair (`--msrcr` / `--no-msrcr`) and its value reaches the combined pipeline. Previously any value parsed as `True`, so color restoration could not be disabled through the flag.
 - Comma-separated sequences in `--param` no longer truncate silently. Sequence values use brackets (`--param "sigmas=[15,80,250]"`), and a scalar where a sequence is expected fails with an error naming the correct flag instead of crashing with a `TypeError`.
 - `--debug` prints a note when the selected method has no illuminant estimate to display, instead of exiting silently.
+- Empty bracketed sequences in `--param` (for example `sigmas=[]`) now fail with a clear error. Previously they reached MSR/MSRCR, where division by the zero-length sequence silently produced NaN output.
+- Preset files can now set `msrcr` to `false`; the CLI default no longer overrides it. The flag wins only when `--msrcr` or `--no-msrcr` is given explicitly.
 
 ### Security
 
 - The `opencv-python` floor is now 4.8.1.78, the first release bundling the libwebp fix for CVE-2023-4863. The previous floor (4.8) permitted wheels with a vulnerable libwebp.
 - `load_image()` rejects decoded images above 100 megapixels (`MAX_IMAGE_PIXELS`), guarding against decompression bombs when processing untrusted files.
 - Benchmark CSV output now prefixes fields that start with a spreadsheet formula metacharacter (`=`, `+`, `-`, `@`, tab, carriage return) with an apostrophe, so reports open as inert text in spreadsheet applications.
-- A missing or malformed `--preset-file` now exits with a clean error message instead of an uncaught traceback.
+- A missing, malformed, or non-object `--preset-file` now exits with a clean error message instead of an uncaught traceback.
 
 ## [1.3.1] – 2026-09-04
 

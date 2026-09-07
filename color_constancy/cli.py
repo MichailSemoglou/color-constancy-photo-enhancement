@@ -44,11 +44,16 @@ def _tuple_param(
             f"{value!r}. To pass several values, {hint}."
         )
     try:
-        return tuple(float(v) for v in value)
+        result = tuple(float(v) for v in value)
     except (TypeError, ValueError):
         raise ValueError(
             f"Parameter {name!r} expects a sequence of numbers, got {value!r}."
         ) from None
+    if not result:
+        raise ValueError(
+            f"Parameter {name!r} expects a non-empty sequence of numbers, got []."
+        )
+    return result
 
 
 def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgorithm:
@@ -238,7 +243,13 @@ def _load_preset(name_or_path: str) -> dict[str, Any]:
     path = Path(name_or_path)
     if path.suffix in (".json",):
         with open(path) as f:
-            return json.load(f)
+            data = json.load(f)
+        if not isinstance(data, dict):
+            raise ValueError(
+                f"Preset file {path} must contain a JSON object, "
+                f"got {type(data).__name__}."
+            )
+        return data
     raise ValueError(
         f"Unknown preset: {name_or_path!r}. "
         f"Available presets: {', '.join(sorted(_PRESETS))}"
@@ -324,9 +335,9 @@ def create_parser() -> argparse.ArgumentParser:
              "absorbed by output normalization.",
     )
     param_group.add_argument(
-        "--msrcr", action=argparse.BooleanOptionalAction, default=True,
-        help="Enable MSRCR color restoration in combined pipeline (default: true). "
-             "Use --no-msrcr to disable.",
+        "--msrcr", action=argparse.BooleanOptionalAction, default=None,
+        help="Enable MSRCR color restoration in combined pipeline. "
+             "Use --no-msrcr to disable. Enabled unless a preset or this flag says otherwise.",
     )
 
     # --- Bridging old-style param key=value ---
@@ -374,7 +385,8 @@ def _collect_params(args: argparse.Namespace) -> dict[str, Any]:
         params["cr_alpha"] = args.cr_alpha
     if args.cr_beta is not None:
         params["cr_beta"] = args.cr_beta
-    params["msrcr"] = args.msrcr
+    if args.msrcr is not None:
+        params["msrcr"] = args.msrcr
     if args.param:
         for raw in args.param:
             params.update(_parse_key_value(raw))
