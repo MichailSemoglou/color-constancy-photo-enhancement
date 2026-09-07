@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.2] – 2026-09-07
+
+### Added
+
+- `SECURITY.md` with supported versions and a vulnerability reporting channel.
+- `constraints.txt`: a hash-pinned snapshot of the tested runtime dependency set for reproducible, hash-verified installs.
+- CI runs a `pip-audit` dependency vulnerability audit on every push and pull request.
+
+### Changed
+
+- Python 3.9 (end of life since October 2025) is dropped: the package now requires Python 3.10 or later, CI tests 3.10 through 3.14, and the Ruff target version moves to py310. The classifiers gain 3.13 and 3.14.
+- The publish workflow pins `actions/upload-artifact` (v4.6.2), `actions/download-artifact` (v4.3.0), and `pypa/gh-action-pypi-publish` (release/v1) to commit SHAs, matching the pinning already used in CI.
+
+### Fixed
+
+- The `--msrcr` flag now works as a proper boolean pair (`--msrcr` / `--no-msrcr`) and its value reaches the combined pipeline. Previously any value parsed as `True`, so color restoration could not be disabled through the flag.
+- Comma-separated sequences in `--param` no longer truncate silently. Sequence values use brackets (`--param "sigmas=[15,80,250]"`), and a scalar where a sequence is expected fails with an error naming the correct flag instead of crashing with a `TypeError`.
+- `--debug` prints a note when the selected method has no illuminant estimate to display, instead of exiting silently.
+- Empty bracketed sequences in `--param` (for example `sigmas=[]`) now fail with a clear error. Previously they reached MSR/MSRCR, where division by the zero-length sequence silently produced NaN output.
+- Preset files can now set `msrcr` to `false`; the CLI default no longer overrides it. The flag wins only when `--msrcr` or `--no-msrcr` is given explicitly.
+
+### Security
+
+- The `opencv-python` floor is now 4.8.1.78, the first release bundling the libwebp fix for CVE-2023-4863. The previous floor (4.8) permitted wheels with a vulnerable libwebp.
+- `load_image()` rejects decoded images above 100 megapixels (`MAX_IMAGE_PIXELS`), guarding against decompression bombs when processing untrusted files.
+- Benchmark CSV output now prefixes fields that start with a spreadsheet formula metacharacter (`=`, `+`, `-`, `@`, tab, carriage return) with an apostrophe, so reports open as inert text in spreadsheet applications.
+- A missing, malformed, or non-object `--preset-file` now exits with a clean error message instead of an uncaught traceback.
+
 ## [1.3.1] – 2026-09-04
 
 ### Added

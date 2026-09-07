@@ -364,8 +364,8 @@ pytest tests/ --cov=color_constancy --cov=color_constancy_enhancer --cov-report=
 
 ## Requirements
 
-- Python 3.9+
-- OpenCV (`opencv-python >= 4.8`)
+- Python 3.10+
+- OpenCV (`opencv-python >= 4.8.1.78`)
 - NumPy (`>= 1.24`)
 - SciPy (`>= 1.10`)
 - Matplotlib (`>= 3.7`)

@@ -89,3 +89,15 @@ def test_save_and_reload_roundtrip(tmp_path):
     save_image(img, str(out))
     reloaded = load_image(str(out))
     np.testing.assert_array_equal(reloaded, img)
+
+
+def test_load_rejects_oversized_image(tmp_path, monkeypatch):
+    """Images above MAX_IMAGE_PIXELS are rejected (decompression-bomb guard)."""
+    from color_constancy import io as io_module
+
+    img = np.full((32, 32, 3), 128, dtype=np.uint8)
+    path = tmp_path / "img.png"
+    _write_rgb_png(path, img)
+    monkeypatch.setattr(io_module, "MAX_IMAGE_PIXELS", 1000)
+    with pytest.raises(ValueError, match="decompression"):
+        load_image(str(path))

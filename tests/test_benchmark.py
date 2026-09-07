@@ -9,6 +9,7 @@ import pytest
 from color_constancy.algorithms import GrayWorldCorrection, WhitePatchCorrection
 from color_constancy.benchmark import (
     BenchmarkReport,
+    BenchmarkResults,
     load_dataset,
     main,
     run_benchmark,
@@ -153,3 +154,19 @@ def test_benchmark_main_rejects_unknown_method_subset(tmp_dataset):
         with pytest.raises(SystemExit) as exc:
             main()
     assert exc.value.code == 1
+
+
+def test_to_csv_neutralizes_formula_prefixes():
+    """Names starting with formula metacharacters must be apostrophe-prefixed."""
+    results = BenchmarkResults()
+    results.add_result("GrayWorld", "=1+1.png", 1.2345, np.zeros(3, dtype=np.float32))
+    lines = results.to_csv().splitlines()
+    assert lines[0] == "algorithm,image,angular_error"
+    assert lines[1] == "GrayWorld,'=1+1.png,1.2345"
+
+
+def test_to_csv_leaves_plain_names_untouched():
+    results = BenchmarkResults()
+    results.add_result("GrayWorld", "plain.png", 0.5, np.zeros(3, dtype=np.float32))
+    lines = results.to_csv().splitlines()
+    assert lines[1] == "GrayWorld,plain.png,0.5000"
