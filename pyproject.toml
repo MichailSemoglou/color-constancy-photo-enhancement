@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "color-constancy-enhancement"
-version = "1.3.1"
+version = "1.3.2"
 description = "Photo enhancement using color constancy algorithms"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
     { name = "Michail Semoglou", email = "m.semoglou@tongji.edu.cn" },
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -19,10 +19,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Image Processing",
     "Topic :: Multimedia :: Graphics :: Graphics Conversion",
 ]
@@ -37,7 +38,7 @@ keywords = [
     "von kries adaptation",
 ]
 dependencies = [
-    "opencv-python>=4.8",
+    "opencv-python>=4.8.1.78",
     "numpy>=1.24",
     "scipy>=1.10",
     "matplotlib>=3.7",
@@ -73,7 +74,7 @@ addopts = "-v"
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP"]

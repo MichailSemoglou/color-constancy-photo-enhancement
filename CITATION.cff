@@ -11,9 +11,9 @@ repository-code: "https://github.com/MichailSemoglou/color-constancy-photo-enhan
 url: "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
 abstract: >-
   A Python implementation of color constancy algorithms for photo enhancement,
-  based on the comprehensive review by Foster (2011). Includes classical methods
+  based on the review by Foster (2011). Includes classical methods
   (Gray World, White Patch, Von Kries, Retinex, MSR, MSRCR, Spatial Color
-  Correction) and the novel Selective Midtone Enhancement (SME) — a
+  Correction) and the novel Selective Midtone Enhancement (SME), a
   perceptually-guided adaptive enhancer with dynamic S-curve contrast and
   conditional saturation control via the Color Definition Confidence (CDC) metric.
 keywords:
@@ -28,9 +28,9 @@ keywords:
   - "midtone enhancement"
   - "selective saturation"
 license: MIT
-version: "1.3.1"
+version: "1.3.2"
 doi: "10.5281/zenodo.21278447"
-date-released: "2026-09-04"
+date-released: "2026-09-07"
 preferred-citation:
   type: software
   authors:
@@ -40,7 +40,7 @@ preferred-citation:
       email: "m.semoglou@tongji.edu.cn"
   title: "Color Constancy Photo Enhancement"
   url: "https://github.com/MichailSemoglou/color-constancy-photo-enhancement"
-  version: "1.3.1"
+  version: "1.3.2"
   year: 2026
 references:
   - type: article

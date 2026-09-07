@@ -1,6 +1,5 @@
 """Visualization helpers for results and diagnostic inspection."""
 
-from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +8,7 @@ import numpy as np
 def display_comparison(
     original: np.ndarray,
     enhanced: np.ndarray,
-    save_path: Optional[str] = None,
+    save_path: str | None = None,
     show: bool = True,
 ) -> None:
     """Display a side-by-side comparison of the original and enhanced images.
@@ -51,7 +50,7 @@ def display_comparison(
 def visualize_illuminant(
     image: np.ndarray,
     illuminant: np.ndarray,
-    save_path: Optional[str] = None,
+    save_path: str | None = None,
     show: bool = True,
 ) -> None:
     """Show per-channel histograms with the estimated illuminant marked.
