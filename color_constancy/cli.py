@@ -25,6 +25,32 @@ from .metrics import color_statistics
 from .visualization import display_comparison, visualize_illuminant
 
 
+def _tuple_param(
+    params: dict[str, Any],
+    name: str,
+    default: tuple[float, ...],
+    flag: str | None = None,
+) -> tuple[float, ...]:
+    """Return a tuple-typed parameter, rejecting scalars with a useful error.
+
+    A scalar almost always means a comma-separated value was truncated when
+    ``--param`` split on commas (``sigmas=15,80,250`` becomes ``15``).
+    """
+    value = params.get(name, default)
+    if isinstance(value, (int, float)):
+        hint = f"use --{flag}" if flag else f'use --param "{name}=[A,B,C]" (brackets required)'
+        raise ValueError(
+            f"Parameter {name!r} expects a sequence of numbers, got the scalar "
+            f"{value!r}. To pass several values, {hint}."
+        )
+    try:
+        return tuple(float(v) for v in value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"Parameter {name!r} expects a sequence of numbers, got {value!r}."
+        ) from None
+
+
 def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgorithm:
     """Construct the requested algorithm with the given parameters.
 
@@ -38,7 +64,7 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
                 [
                     GrayWorldCorrection(),
                     MultiScaleRetinex(
-                        sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
+                        sigmas=_tuple_param(params, "sigmas", (15.0, 80.0, 250.0), flag="sigmas A,B,C"),
                         blend_alpha=params.get("blend_alpha", 0.7),
                     ),
                 ],
@@ -48,7 +74,7 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
             [
                 GrayWorldCorrection(),
                 MSRCR(
-                    sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
+                    sigmas=_tuple_param(params, "sigmas", (15.0, 80.0, 250.0), flag="sigmas A,B,C"),
                     blend_alpha=params.get("blend_alpha", 0.7),
                     cr_alpha=params.get("cr_alpha", 125.0),
                     cr_beta=params.get("cr_beta", 46.0),
@@ -68,7 +94,7 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
     if method == "von_kries":
         return VonKriesAdaptation(
             adaptation_strength=params.get("adaptation_strength", 0.6),
-            clip_range=params.get("clip_range", (0.6, 1.7)),
+            clip_range=_tuple_param(params, "clip_range", (0.6, 1.7)),
             gray_world_weight=params.get("gray_world_weight", 0.7),
         )
 
@@ -80,13 +106,13 @@ def _build_algorithm(method: str, params: dict[str, Any]) -> ColorConstancyAlgor
 
     if method == "msr":
         return MultiScaleRetinex(
-            sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
+            sigmas=_tuple_param(params, "sigmas", (15.0, 80.0, 250.0), flag="sigmas A,B,C"),
             blend_alpha=params.get("blend_alpha", 0.7),
         )
 
     if method == "msrcr":
         return MSRCR(
-            sigmas=params.get("sigmas", (15.0, 80.0, 250.0)),
+            sigmas=_tuple_param(params, "sigmas", (15.0, 80.0, 250.0), flag="sigmas A,B,C"),
             blend_alpha=params.get("blend_alpha", 0.7),
             cr_alpha=params.get("cr_alpha", 125.0),
             cr_beta=params.get("cr_beta", 46.0),
@@ -150,26 +176,58 @@ _PRESETS: dict[str, dict[str, Any]] = {
 }
 
 
+def _split_pairs(raw: str) -> list[str]:
+    """Split on commas, ignoring commas inside square brackets."""
+    pairs: list[str] = []
+    depth = 0
+    current = ""
+    for ch in raw:
+        if ch == "[":
+            depth += 1
+        elif ch == "]" and depth:
+            depth -= 1
+        if ch == "," and depth == 0:
+            pairs.append(current)
+            current = ""
+        else:
+            current += ch
+    if current:
+        pairs.append(current)
+    return pairs
+
+
 def _parse_key_value(raw: str) -> dict[str, Any]:
-    """Parse ``key=value`` pairs into a dictionary with typed values."""
+    """Parse ``key=value`` pairs into a dictionary with typed values.
+
+    Sequence values need square brackets so their commas survive pair
+    splitting: ``--param "sigmas=[15,80,250]"``.
+    """
     result: dict[str, Any] = {}
-    for pair in raw.split(","):
+    for pair in _split_pairs(raw):
         key, _, val = pair.partition("=")
         if not key or not val:
             continue
+        key = key.strip()
+        val = val.strip()
+        if val.startswith("[") and val.endswith("]"):
+            try:
+                result[key] = tuple(float(x) for x in val[1:-1].split(",") if x.strip())
+                continue
+            except ValueError:
+                pass  # not a numeric sequence; fall through to scalar parsing
         # Try to coerce to number / boolean.
         if val.lower() == "true":
-            result[key.strip()] = True
+            result[key] = True
         elif val.lower() == "false":
-            result[key.strip()] = False
+            result[key] = False
         else:
             try:
-                result[key.strip()] = int(val)
+                result[key] = int(val)
             except ValueError:
                 try:
-                    result[key.strip()] = float(val)
+                    result[key] = float(val)
                 except ValueError:
-                    result[key.strip()] = val
+                    result[key] = val
     return result
 
 
@@ -266,15 +324,17 @@ def create_parser() -> argparse.ArgumentParser:
              "absorbed by output normalization.",
     )
     param_group.add_argument(
-        "--msrcr", type=bool, default=True, metavar="BOOL",
-        help="Enable MSRCR color restoration in combined pipeline (default: true).",
+        "--msrcr", action=argparse.BooleanOptionalAction, default=True,
+        help="Enable MSRCR color restoration in combined pipeline (default: true). "
+             "Use --no-msrcr to disable.",
     )
 
     # --- Bridging old-style param key=value ---
     param_group.add_argument(
         "--param", type=str, action="append", metavar="k=v,...",
         help="Additional algorithm parameters as comma-separated key=value "
-             "pairs. May be repeated.",
+             "pairs. May be repeated. Use brackets for sequence values, "
+             "e.g. \"sigmas=[15,80,250]\".",
     )
 
     # --- Presets ---
@@ -314,6 +374,7 @@ def _collect_params(args: argparse.Namespace) -> dict[str, Any]:
         params["cr_alpha"] = args.cr_alpha
     if args.cr_beta is not None:
         params["cr_beta"] = args.cr_beta
+    params["msrcr"] = args.msrcr
     if args.param:
         for raw in args.param:
             params.update(_parse_key_value(raw))
@@ -344,11 +405,16 @@ def main() -> None:
         sys.exit(1)
 
     # Load preset, then override with CLI params.
-    preset_params: dict[str, Any] = {}
-    if args.preset != "default":
-        preset_params = _load_preset(args.preset)
-    if args.preset_file:
-        preset_params.update(_load_preset(args.preset_file))
+    try:
+        preset_params: dict[str, Any] = {}
+        if args.preset != "default":
+            preset_params = _load_preset(args.preset)
+        if args.preset_file:
+            preset_params.update(_load_preset(args.preset_file))
+    except (OSError, ValueError) as exc:
+        # JSONDecodeError subclasses ValueError, so malformed JSON lands here.
+        print(f"Error loading preset: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     cli_params = _collect_params(args)
     merged = {**preset_params, **cli_params}
@@ -382,6 +448,12 @@ def main() -> None:
                 f"R={illuminant[0]:.4f}  G={illuminant[1]:.4f}  B={illuminant[2]:.4f}"
             )
             visualize_illuminant(original, illuminant)
+        elif args.debug:
+            print(
+                f"Note: --debug is not available for '{method}' "
+                "(no illuminant estimate to display).",
+                file=sys.stderr,
+            )
 
         if args.show or args.comparison:
             display_comparison(
